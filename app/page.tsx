@@ -1,19 +1,8 @@
 "use client";
 
-import { useEffect } from "react";
 import Link from "next/link";
-import AOS from "aos";
-import "aos/dist/aos.css";
 
-export default function LandingPage() {
-  useEffect(() => {
-    AOS.init({
-      duration: 800,
-      once: true,
-      offset: 100,
-    });
-  }, []);
-
+export default function Home() {
   return (
     <main 
       className="min-h-screen bg-white"
@@ -42,11 +31,9 @@ export default function LandingPage() {
               <Link href="#feedback" className="text-sm font-medium text-gray-600 hover:text-blue-600">
                 Feedback
               </Link>
-              {/* 👇 TINANGGAL NA ANG INTRAMS DITO */}
               <Link href="/login" className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-700">
                 Login
               </Link>
-              {/* 👇 PINALITAN NG REGISTER */}
               <Link
                 href="/register"
                 className="rounded-lg bg-green-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-green-700"
@@ -62,7 +49,7 @@ export default function LandingPage() {
       <section className="py-20">
         <div className="mx-auto max-w-7xl px-4">
           <div className="grid items-center gap-12 md:grid-cols-2">
-            <div data-aos="fade-up">
+            <div>
               <h1 className="text-4xl font-bold text-gray-900 md:text-5xl">
                 AF-NEXUS: Smarter School Management Starts Here
               </h1>
@@ -72,16 +59,14 @@ export default function LandingPage() {
             </div>
 
             <div className="flex justify-center">
-              <div className="relative" data-aos="fade-left">
+              <div className="relative">
                 <div className="absolute -inset-4 rounded-2xl bg-blue-100 blur-2xl opacity-50" />
                 <div className="relative rounded-2xl bg-white p-8 shadow-xl">
-                  <div className="animate-float">
-                    <img
-                      src="/af-nexus-hero.png"
-                      alt="AF-NEXUS Education Management Platform"
-                      className="h-auto w-full rounded-xl"
-                    />
-                  </div>
+                  <img
+                    src="/af-nexus-hero.png"
+                    alt="AF-NEXUS Education Management Platform"
+                    className="h-auto w-full rounded-xl"
+                  />
                 </div>
               </div>
             </div>
@@ -92,7 +77,7 @@ export default function LandingPage() {
       {/* ===== FEATURES SECTION ===== */}
       <section id="features" className="py-20">
         <div className="mx-auto max-w-7xl px-4">
-          <div className="text-center" data-aos="fade-up">
+          <div className="text-center">
             <h2 className="text-3xl font-bold text-gray-900">Features</h2>
             <p className="mt-2 text-gray-600">
               Ang AF-NEXUS ay may kumpletong solusyon para sa school management.
@@ -100,7 +85,7 @@ export default function LandingPage() {
           </div>
 
           <div className="mt-12 grid gap-8 md:grid-cols-3">
-            <div className="rounded-xl bg-white p-6 shadow-lg" data-aos="fade-up" data-aos-delay="100">
+            <div className="rounded-xl bg-white p-6 shadow-lg">
               <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-blue-100 text-blue-600">
                 📥
               </div>
@@ -110,7 +95,7 @@ export default function LandingPage() {
               </p>
             </div>
 
-            <div className="rounded-xl bg-white p-6 shadow-lg" data-aos="fade-up" data-aos-delay="200">
+            <div className="rounded-xl bg-white p-6 shadow-lg">
               <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-green-100 text-green-600">
                 📄
               </div>
@@ -120,7 +105,7 @@ export default function LandingPage() {
               </p>
             </div>
 
-            <div className="rounded-xl bg-white p-6 shadow-lg" data-aos="fade-up" data-aos-delay="300">
+            <div className="rounded-xl bg-white p-6 shadow-lg">
               <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-purple-100 text-purple-600">
                 💡
               </div>
@@ -136,7 +121,7 @@ export default function LandingPage() {
       {/* ===== PROJECTS SECTION ===== */}
       <section id="projects" className="py-20">
         <div className="mx-auto max-w-7xl px-4">
-          <div className="text-center" data-aos="fade-up">
+          <div className="text-center">
             <h2 className="text-3xl font-bold text-gray-900">Our Projects</h2>
             <p className="mt-2 text-gray-600">
               Explore our latest digital solutions for education.
@@ -144,8 +129,8 @@ export default function LandingPage() {
           </div>
 
           <div className="mt-12 grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-            {/* Project 1 - NEXUSPASS */}
-            <div className="overflow-hidden rounded-xl bg-white shadow-lg" data-aos="fade-right">
+            {/* NEXUSPASS */}
+            <div className="overflow-hidden rounded-xl bg-white shadow-lg">
               <div className="relative h-48 w-full overflow-hidden bg-blue-600">
                 <img
                   src="/nexuspass-hero.png"
@@ -166,8 +151,8 @@ export default function LandingPage() {
               </div>
             </div>
 
-            {/* Project 2 - PROJECT LIKHA */}
-            <div className="overflow-hidden rounded-xl bg-white shadow-lg" data-aos="fade-up">
+            {/* PROJECT LIKHA */}
+            <div className="overflow-hidden rounded-xl bg-white shadow-lg">
               <div className="relative h-48 w-full overflow-hidden bg-green-600">
                 <img
                   src="/project-likha.png"
@@ -197,8 +182,8 @@ export default function LandingPage() {
               </div>
             </div>
 
-            {/* 👇 ITO ANG PINALITAN KO - INTRAMS 2026 */}
-            <div className="overflow-hidden rounded-xl bg-white shadow-lg" data-aos="fade-left">
+            {/* INTRAMS 2026 */}
+            <div className="overflow-hidden rounded-xl bg-white shadow-lg">
               <div className="relative h-48 w-full overflow-hidden bg-orange-600">
                 <img
                   src="/intrams-hero.png"
@@ -225,13 +210,13 @@ export default function LandingPage() {
       {/* ===== FEEDBACK SECTION ===== */}
       <section id="feedback" className="py-20">
         <div className="mx-auto max-w-7xl px-4">
-          <div className="text-center" data-aos="fade-up">
+          <div className="text-center">
             <h2 className="text-3xl font-bold text-gray-900">Feedback</h2>
             <p className="mt-2 text-gray-600">Hear what our users are saying.</p>
           </div>
 
           <div className="mt-12 grid gap-8 md:grid-cols-3">
-            <div className="rounded-xl bg-white p-6 shadow-lg" data-aos="fade-up" data-aos-delay="100">
+            <div className="rounded-xl bg-white p-6 shadow-lg">
               <div className="flex items-center gap-1 text-yellow-400">★★★★★</div>
               <p className="mt-4 text-sm text-gray-600">"NEXUSPASS has made our ID process so much easier. We can now upload and download all student IDs in minutes!"</p>
               <div className="mt-4 flex items-center gap-3">
@@ -243,7 +228,7 @@ export default function LandingPage() {
               </div>
             </div>
 
-            <div className="rounded-xl bg-white p-6 shadow-lg" data-aos="fade-up" data-aos-delay="200">
+            <div className="rounded-xl bg-white p-6 shadow-lg">
               <div className="flex items-center gap-1 text-yellow-400">★★★★★</div>
               <p className="mt-4 text-sm text-gray-600">"The QR code verification feature is amazing! It makes checking student IDs so much faster."</p>
               <div className="mt-4 flex items-center gap-3">
@@ -255,7 +240,7 @@ export default function LandingPage() {
               </div>
             </div>
 
-            <div className="rounded-xl bg-white p-6 shadow-lg" data-aos="fade-up" data-aos-delay="300">
+            <div className="rounded-xl bg-white p-6 shadow-lg">
               <div className="flex items-center gap-1 text-yellow-400">★★★★★</div>
               <p className="mt-4 text-sm text-gray-600">"As a student, I can easily download my ID anytime. The payment system is also very convenient!"</p>
               <div className="mt-4 flex items-center gap-3">
@@ -286,7 +271,6 @@ export default function LandingPage() {
                 <li><Link href="/register" className="hover:text-white">Register</Link></li>
                 <li><Link href="#features" className="hover:text-white">Features</Link></li>
                 <li><Link href="#projects" className="hover:text-white">Projects</Link></li>
-                {/* 👇 TINANGGAL KO NA ANG INTRAMS DITO */}
               </ul>
             </div>
 
@@ -315,17 +299,6 @@ export default function LandingPage() {
           </div>
         </div>
       </footer>
-
-      {/* ===== CUSTOM CSS FOR FLOATING ANIMATION ===== */}
-      <style jsx>{`
-        @keyframes float {
-          0%, 100% { transform: translateY(0px); }
-          50% { transform: translateY(-20px); }
-        }
-        .animate-float {
-          animation: float 3s ease-in-out infinite;
-        }
-      `}</style>
     </main>
   );
 }
