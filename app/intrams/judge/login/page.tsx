@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 
 export default function JudgeLoginPage() {
@@ -32,12 +33,7 @@ export default function JudgeLoginPage() {
           .eq('id', data.user.id)
           .single();
 
-        if (profile?.role === 'admin') {
-          // ✅ I-REDIRECT ANG ADMIN SA ADMIN DASHBOARD
-          router.push("/intrams/admin/dashboard");
-          router.refresh();
-        } else if (profile?.role === 'judge') {
-          // ✅ I-REDIRECT ANG JUDGE SA JUDGE PORTAL
+        if (profile?.role === 'judge' || profile?.role === 'admin') {
           router.push("/intrams/judge");
           router.refresh();
         } else {
@@ -114,6 +110,16 @@ export default function JudgeLoginPage() {
               Register here
             </a>
           </p>
+        </div>
+
+        {/* ✅ BACK TO HOME LINK */}
+        <div className="mt-6 text-center">
+          <Link
+            href="/"
+            className="text-sm text-gray-400 hover:text-blue-600 transition"
+          >
+            ← Back to Home
+          </Link>
         </div>
       </div>
     </main>
