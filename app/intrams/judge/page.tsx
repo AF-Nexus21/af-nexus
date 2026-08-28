@@ -247,7 +247,7 @@ export default function JudgePage() {
 
         {/* ✅ CHECKBOX INDICATOR */}
         <div className="bg-white rounded-lg shadow-md p-4 mb-6">
-          <div className="flex items-center gap-4">
+          <div className="flex items-center justify-between flex-wrap">
             <div className="flex-1">
               <p className="text-sm font-semibold text-gray-600">Napiling Category:</p>
               <p className="text-lg font-bold text-blue-700">
