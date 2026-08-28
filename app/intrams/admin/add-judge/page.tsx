@@ -79,7 +79,7 @@ export default function AddJudgePage() {
           id: user.id,
           name: name,
           email: email,
-          judge_code: `JUDGE-${Date.now()}`, // Random judge code
+          judge_code: `JUDGE-${Date.now()}`,
         });
 
       if (judgesError) {
@@ -88,7 +88,7 @@ export default function AddJudgePage() {
         return;
       }
 
-      // Step 3: Insert sa 'profiles' table para may role
+      // Step 3: Insert sa 'profiles' table
       const { error: profileError } = await supabase
         .from("profiles")
         .insert({
@@ -115,7 +115,7 @@ export default function AddJudgePage() {
       setConfirmPassword("");
 
       setTimeout(() => {
-        router.push("/intrams/admin");
+        router.push("/intrams/admin/dashboard");
       }, 1500);
     } catch (error) {
       setMessage("Something went wrong. Please try again.");
@@ -132,8 +132,8 @@ export default function AddJudgePage() {
             <h1 className="text-3xl font-bold text-gray-900">📝 Add Judge</h1>
             <p className="text-gray-600">Add a new judge to Mr. & Miss Intrams 2026</p>
           </div>
-          <Link href="/intrams/admin" className="text-blue-600 hover:text-blue-800">
-            ← Back to Admin
+          <Link href="/intrams/admin/dashboard" className="text-blue-600 hover:text-blue-800">
+            ← Back to Admin Dashboard
           </Link>
         </div>
 
