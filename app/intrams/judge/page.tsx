@@ -18,6 +18,7 @@ export default function JudgePage() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [messageType, setMessageType] = useState<"error" | "success" | "">("");
+  const [isSuccessModalOpen, setIsSuccessModalOpen] = useState<boolean>(false);
 
   useEffect(() => {
     // ✅ CHECK: Kailangan ba talaga ng judge na naka-login?
@@ -101,7 +102,6 @@ export default function JudgePage() {
     setLoading(true);
     setSubmitSuccess(false);
     try {
-      // ✅ DITO NAMIN IN-TYPE YUNG ENTRIES
       const entries: any[] = [];
       filteredCandidates.forEach((candidate) => {
         filteredCriteria.forEach((criterion) => {
@@ -126,7 +126,11 @@ export default function JudgePage() {
       }
       setSubmitSuccess(true);
       setLoading(false);
-      setTimeout(() => setSubmitSuccess(false), 3000);
+      // ✅ I-OPEN YUNG SUCCESS MODAL
+      setIsSuccessModalOpen(true);
+      setTimeout(() => {
+        setIsSuccessModalOpen(false);
+      }, 2500); // 2.5 seconds awtomatikong magsasara
     } catch (error) {
       setMessage("Something went wrong. Please try again.");
       setMessageType("error");
@@ -170,13 +174,6 @@ export default function JudgePage() {
           </div>
         </div>
 
-        {/* Submit Success Message */}
-        {submitSuccess && (
-          <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg mb-6">
-            ✅ Tama na! Lahat ng scores ay na-submit na!
-          </div>
-        )}
-
         {/* Segment and Gender Selectors */}
         <div className="bg-white rounded-lg shadow-md p-4 mb-6">
           <div className="flex gap-4">
@@ -218,7 +215,6 @@ export default function JudgePage() {
                   <th className="px-4 py-2 text-left">Candidate</th>
                   {filteredCriteria.map((criterion) => (
                     <th key={criterion.id} className="px-4 py-2 text-center">
-                      {/* ✅ MAKIKITA NA YUNG MAX POINTS */}
                       {criterion.name} (10)
                     </th>
                   ))}
@@ -229,7 +225,6 @@ export default function JudgePage() {
                 {filteredCandidates.map((candidate) => (
                   <tr key={candidate.id} className="border-b">
                     <td className="px-4 py-3">
-                      {/* ✅ NUMBER LANG ANG MAKIKITA, HINDI GRADE LEVEL */}
                       <span className="font-bold">#{candidate.number}</span>
                     </td>
                     {filteredCriteria.map((criterion) => (
@@ -267,6 +262,28 @@ export default function JudgePage() {
           </div>
         </div>
       </div>
+
+      {/* ✅ SUCCESS POP-UP MODAL */}
+      {isSuccessModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60">
+          <div className="relative w-full max-w-md rounded-3xl bg-white p-8 text-center shadow-2xl">
+            {/* Glow Effect */}
+            <div className="absolute inset-0 rounded-3xl bg-green-400 opacity-20 blur-2xl" />
+            
+            <div className="relative">
+              {/* Checkmark Icon */}
+              <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-green-100">
+                <svg className="h-12 w-12 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+              
+              <p className="mt-4 text-2xl font-bold text-gray-900">Scores submitted successfully!</p>
+              <p className="mt-2 text-sm text-gray-600">Napaka-galing! Ang iyong scores ay na-save na.</p>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }
