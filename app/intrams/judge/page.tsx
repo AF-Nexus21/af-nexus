@@ -81,7 +81,7 @@ export default function JudgePage() {
     });
   }
 
-  // ✅ COMPUTE TOTAL: Para sa bawat candidate
+  // ✅ COMPUTE TOTAL: Exact total score
   function computeCandidateTotal(candidateId: string) {
     let total = 0;
     filteredCriteria.forEach((criterion) => {
@@ -89,7 +89,7 @@ export default function JudgePage() {
       if (inputValue) {
         const score = parseFloat(inputValue);
         if (!isNaN(score)) {
-          total += (score / criterion.max_score) * criterion.percentage * 100;
+          total += score; // ✅ Simple addition lang!
         }
       }
     });
@@ -218,9 +218,8 @@ export default function JudgePage() {
                   <th className="px-4 py-2 text-left">Candidate</th>
                   {filteredCriteria.map((criterion) => (
                     <th key={criterion.id} className="px-4 py-2 text-center">
+                      {/* ✅ HINDI NA IPAKITA YUNG PERCENTAGE */}
                       {criterion.name}
-                      <br />
-                      <span className="text-xs">({criterion.percentage * 100}%)</span>
                     </th>
                   ))}
                   <th className="px-4 py-2 text-center">Total</th>
