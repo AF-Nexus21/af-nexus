@@ -21,7 +21,7 @@ export default function IntramsPage() {
             <p className="mt-2 text-sm text-gray-600">
               Manage candidates, criteria, and view all scores.
             </p>
-            <Link href="/intrams/admin" className="mt-4 inline-block rounded-lg bg-purple-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-purple-700">
+            <Link href="/intrams/admin/dashboard" className="mt-4 inline-block rounded-lg bg-purple-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-purple-700">
               Go to Admin
             </Link>
           </div>
