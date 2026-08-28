@@ -19,6 +19,7 @@ export default function JudgePage() {
   const [message, setMessage] = useState<string | null>(null);
   const [messageType, setMessageType] = useState<"error" | "success" | "">("");
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState<boolean>(false);
+  const [isCategoryDoneModalOpen, setIsCategoryDoneModalOpen] = useState<boolean>(false);
 
   useEffect(() => {
     // ✅ CHECK: Kailangan ba talaga ng judge na naka-login?
@@ -147,11 +148,11 @@ export default function JudgePage() {
       }
       setSubmitSuccess(true);
       setLoading(false);
-      // ✅ I-OPEN YUNG SUCCESS MODAL
-      setIsSuccessModalOpen(true);
+      // ✅ I-OPEN YUNG CATEGORY DONE MODAL
+      setIsCategoryDoneModalOpen(true);
       setTimeout(() => {
-        setIsSuccessModalOpen(false);
-      }, 2500); // 2.5 seconds awtomatikong magsasara
+        setIsCategoryDoneModalOpen(false);
+      }, 3000); // 3 seconds awtomatikong magsasara
       
       // ✅ I-CLEAR YUNG SCORE INPUTS PARA SA SUSUNOD NA CATEGORY
       setScoreInputs({});
@@ -287,7 +288,7 @@ export default function JudgePage() {
         </div>
       </div>
 
-      {/* ✅ SUCCESS POP-UP MODAL */}
+      {/* ✅ SUCCESS MODAL */}
       {isSuccessModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60">
           <div className="relative w-full max-w-md rounded-3xl bg-white p-8 text-center shadow-2xl">
@@ -304,6 +305,43 @@ export default function JudgePage() {
               
               <p className="mt-4 text-2xl font-bold text-gray-900">Scores submitted successfully!</p>
               <p className="mt-2 text-sm text-gray-600">Napaka-galing! Ang iyong scores ay na-save na.</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ✅ CATEGORY DONE MODAL */}
+      {isCategoryDoneModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60">
+          <div className="relative w-full max-w-lg rounded-3xl bg-gradient-to-br from-purple-500 to-blue-500 p-8 text-center shadow-2xl">
+            {/* Glow Effect */}
+            <div className="absolute inset-0 rounded-3xl bg-purple-400 opacity-20 blur-2xl" />
+            
+            <div className="relative">
+              <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-white">
+                <svg className="h-12 w-12 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+              
+              <p className="mt-4 text-3xl font-bold text-white">Congratulations!</p>
+              <p className="mt-2 text-lg text-purple-100">
+                You have successfully rated the {gender === "female" ? "Female" : "Male"} candidates!
+              </p>
+              <p className="mt-2 text-sm text-purple-200">
+                Pindutin ang link sa ibaba para lumipat sa susunod na category.
+              </p>
+              
+              <button
+                onClick={() => {
+                  setIsCategoryDoneModalOpen(false);
+                  // ✅ I-SWITCH GENDER
+                  setGender(gender === "female" ? "male" : "female");
+                }}
+                className="mt-6 w-full rounded-lg bg-white px-6 py-3 font-semibold text-purple-700 transition hover:bg-purple-100"
+              >
+                Lumipat sa Susunod na Category
+              </button>
             </div>
           </div>
         </div>
