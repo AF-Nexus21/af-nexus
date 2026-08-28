@@ -31,7 +31,8 @@ export default function ForgotPasswordPage() {
       }
 
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/reset-password`,
+        // ✅ ITO YUNG TAMANG REDIRECT URL!
+        redirectTo: "https://af-nexus.vercel.app/reset-password",
       });
 
       if (error) {
