@@ -76,7 +76,11 @@ export default function Dashboard() {
             Projects
           </p>
           
-          <Link href="/intrams/admin/dashboard" className="flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-gray-100 text-gray-700">
+          {/* ✅ ROLE-BASED: Kung judge, sa Judge Portal; kung admin, sa Admin Dashboard */}
+          <Link
+            href={role === "judge" ? "/intrams/judge" : "/intrams/admin/dashboard"}
+            className="flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-gray-100 text-gray-700"
+          >
             <span>🏆</span> INTRAMS 2026
           </Link>
           
@@ -124,8 +128,11 @@ export default function Dashboard() {
 
         {/* Cards para sa mga Projects */}
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {/* INTRAMS 2026 Card */}
-          <Link href="/intrams/admin/dashboard" className="group bg-white rounded-xl shadow-sm hover:shadow-lg transition p-6 border border-gray-100">
+          {/* ✅ ROLE-BASED: Kung judge, sa Judge Portal; kung admin, sa Admin Dashboard */}
+          <Link
+            href={role === "judge" ? "/intrams/judge" : "/intrams/admin/dashboard"}
+            className="group bg-white rounded-xl shadow-sm hover:shadow-lg transition p-6 border border-gray-100"
+          >
             <div className="h-12 w-12 rounded-lg bg-orange-600 text-white flex items-center justify-center text-2xl mb-4">
               🏆
             </div>
