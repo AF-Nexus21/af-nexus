@@ -12,6 +12,8 @@ export default function ViewScoresPage() {
   const [scores, setScores] = useState<any[]>([]);
   const [judges, setJudges] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [gender, setGender] = useState<string>("female");
+  const [segment, setSegment] = useState<string>("Sport Attire");
 
   useEffect(() => {
     async function checkAdmin() {
@@ -58,6 +60,39 @@ export default function ViewScoresPage() {
     );
   }
 
+  // Filter criteria based on gender and segment
+  const filteredCriteria = criteria.filter(
+    (c) => c.gender === gender || c.gender === null || c.gender === ""
+  );
+
+  // Filter candidates based on gender
+  const filteredCandidates = candidates.filter((c) => c.gender === gender);
+
+  // Compute tabulation
+  function computeTabulation() {
+    const results = filteredCandidates.map((candidate) => {
+      const candidateScores = scores.filter((s) => s.candidate_id === candidate.id);
+      let totalScore = 0;
+
+      filteredCriteria.forEach((criterion) => {
+        const criterionScores = candidateScores.filter((s) => s.criteria_id === criterion.id);
+        if (criterionScores.length > 0) {
+          const avg = criterionScores.reduce((sum, s) => sum + s.score, 0) / criterionScores.length;
+          totalScore += (avg / criterion.max_score) * criterion.percentage * 100;
+        }
+      });
+
+      return {
+        ...candidate,
+        totalScore: totalScore.toFixed(2),
+      };
+    });
+
+    return results.sort((a, b) => b.totalScore - a.totalScore);
+  }
+
+  const tabulation = computeTabulation();
+
   return (
     <main className="min-h-screen bg-gray-100">
       <div className="mx-auto max-w-6xl px-4 py-8">
@@ -66,11 +101,53 @@ export default function ViewScoresPage() {
             <h1 className="text-3xl font-bold text-gray-900">📊 View Scores</h1>
             <p className="text-gray-600">All scores from all judges for Mr. & Miss Intrams 2026</p>
           </div>
-          <Link href="/intrams/admin" className="text-blue-600 hover:text-blue-800">
-            ← Back to Admin
-          </Link>
+          <div className="flex gap-4">
+            <Link href="/intrams/admin/dashboard" className="text-blue-600 hover:text-blue-800">
+              ← Back to Admin Dashboard
+            </Link>
+            <button
+              onClick={async () => {
+                await supabase.auth.signOut();
+                router.push("/intrams/judge/login");
+              }}
+              className="bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-red-700"
+            >
+              Logout
+            </button>
+          </div>
         </div>
 
+        {/* Segment and Gender Selectors */}
+        <div className="bg-white rounded-lg shadow-md p-4 mb-6">
+          <div className="flex gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Gender</label>
+              <select
+                value={gender}
+                onChange={(e) => setGender(e.target.value)}
+                className="mt-1 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                <option value="female">Female</option>
+                <option value="male">Male</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Segment</label>
+              <select
+                value={segment}
+                onChange={(e) => setSegment(e.target.value)}
+                className="mt-1 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                <option value="Sport Attire">Sport Attire</option>
+                <option value="Production Number">Production Number</option>
+                <option value="Ramp Modelling">Ramp Modelling</option>
+                <option value="Q&A">Q&A</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        {/* Candidate Scores */}
         <div className="bg-white rounded-lg shadow-md p-6">
           <h2 className="text-xl font-semibold mb-6">🏆 Candidate Scores</h2>
           <div className="overflow-x-auto">
@@ -78,7 +155,7 @@ export default function ViewScoresPage() {
               <thead>
                 <tr className="bg-purple-600 text-white">
                   <th className="px-4 py-2 text-left">Candidate</th>
-                  {criteria.map((criterion) => (
+                  {filteredCriteria.map((criterion) => (
                     <th key={criterion.id} className="px-4 py-2 text-center">
                       {criterion.name}
                       <br />
@@ -89,7 +166,7 @@ export default function ViewScoresPage() {
                 </tr>
               </thead>
               <tbody>
-                {candidates.map((candidate) => (
+                {filteredCandidates.map((candidate) => (
                   <tr key={candidate.id} className="border-b">
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-3">
@@ -100,7 +177,7 @@ export default function ViewScoresPage() {
                         </div>
                       </div>
                     </td>
-                    {criteria.map((criterion) => (
+                    {filteredCriteria.map((criterion) => (
                       <td key={criterion.id} className="px-4 py-3 text-center">
                         <div className="flex flex-col items-center gap-1">
                           <div className="font-bold text-blue-600">
@@ -128,7 +205,7 @@ export default function ViewScoresPage() {
                         {(() => {
                           const candidateScores = scores.filter((s) => s.candidate_id === candidate.id);
                           let total = 0;
-                          criteria.forEach((criterion) => {
+                          filteredCriteria.forEach((criterion) => {
                             const scoresForCriterion = candidateScores.filter((s) => s.criteria_id === criterion.id);
                             if (scoresForCriterion.length > 0) {
                               const avg = scoresForCriterion.reduce((sum, s) => sum + s.score, 0) / scoresForCriterion.length;
