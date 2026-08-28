@@ -2,9 +2,11 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation"; // ✅ I-IMPORT MO ITO
 import { supabase } from "@/lib/supabase";
 
 export default function ViewScoresPage() {
+  const router = useRouter(); // ✅ I-ADD MO ITO
   const [candidates, setCandidates] = useState<any[]>([]);
   const [criteria, setCriteria] = useState<any[]>([]);
   const [scores, setScores] = useState<any[]>([]);
