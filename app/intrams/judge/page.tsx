@@ -218,8 +218,8 @@ export default function JudgePage() {
                   <th className="px-4 py-2 text-left">Candidate</th>
                   {filteredCriteria.map((criterion) => (
                     <th key={criterion.id} className="px-4 py-2 text-center">
-                      {/* ✅ HINDI NA IPAKITA YUNG PERCENTAGE */}
-                      {criterion.name}
+                      {/* ✅ MAKIKITA NA YUNG MAX POINTS */}
+                      {criterion.name} (10)
                     </th>
                   ))}
                   <th className="px-4 py-2 text-center">Total</th>
