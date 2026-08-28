@@ -38,12 +38,6 @@ export default function AddCandidatePage() {
     setMessageType("");
 
     try {
-      if (!supabase) {
-        setMessage("Supabase is not configured. Please check your environment variables.");
-        setMessageType("error");
-        return;
-      }
-
       const { error } = await supabase.from("candidates").insert({
         number: parseInt(number),
         name: name,
@@ -70,7 +64,7 @@ export default function AddCandidatePage() {
       setPhotoUrl("");
 
       setTimeout(() => {
-        router.push("/intrams/admin");
+        router.push("/intrams/admin/dashboard");
       }, 1500);
     } catch (error) {
       setMessage("Something went wrong. Please try again.");
@@ -87,8 +81,8 @@ export default function AddCandidatePage() {
             <h1 className="text-3xl font-bold text-gray-900">📝 Add Candidate</h1>
             <p className="text-gray-600">Add a new candidate to Mr. & Miss Intrams 2026</p>
           </div>
-          <Link href="/intrams/admin" className="text-blue-600 hover:text-blue-800">
-            ← Back to Admin
+          <Link href="/intrams/admin/dashboard" className="text-blue-600 hover:text-blue-800">
+            ← Back to Admin Dashboard
           </Link>
         </div>
 

@@ -150,7 +150,16 @@ export default function DisplayPage() {
                   <tr key={candidate.id} className={index === 0 ? "bg-yellow-100" : ""}>
                     <td className="px-4 py-2 font-bold">{index + 1}</td>
                     <td className="px-4 py-2">{candidate.number}</td>
-                    <td className="px-4 py-2">{candidate.name}</td>
+                    <td className="px-4 py-2">
+                      <div className="flex items-center gap-3">
+                        <img
+                          src={candidate.photo_url || "/default-avatar.png"}
+                          alt={candidate.name}
+                          className="h-10 w-10 rounded-full object-cover"
+                        />
+                        <span>{candidate.name}</span>
+                      </div>
+                    </td>
                     <td className="px-4 py-2">{candidate.section}</td>
                     <td className="px-4 py-2 font-bold">{candidate.totalScore}</td>
                   </tr>
