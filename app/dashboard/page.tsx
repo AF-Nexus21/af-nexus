@@ -23,13 +23,20 @@ export default function Dashboard() {
       // ✅ Kunin natin yung first_name mula sa profiles table
       const { data: profile } = await supabase
         .from("profiles")
-        .select("first_name")
+        .select("first_name, role")
         .eq("id", user.id)
         .maybeSingle();
 
       if (profile?.first_name) {
         setUserName(profile.first_name);
       }
+
+      // ✅ KUNG ADMIN, IREDIRECT SA ADMIN DASHBOARD
+      if (profile?.role === "admin") {
+        router.push("/intrams/admin/dashboard");
+        return;
+      }
+
       setLoading(false);
     };
 
@@ -71,11 +78,11 @@ export default function Dashboard() {
             <span>🏆</span> INTRAMS 2026
           </Link>
           
-          <Link href="/projects/nexuspass" className="flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-gray-100 text-gray-700">
+          <Link href="/nexuspass" className="flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-gray-100 text-gray-700">
             <span>🪪</span> NEXUSPASS
           </Link>
           
-          <Link href="/projects/likha" className="flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-gray-100 text-gray-700">
+          <Link href="/likha" className="flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-gray-100 text-gray-700">
             <span>📚</span> PROJECT LIKHA
           </Link>
         </nav>
@@ -128,7 +135,7 @@ export default function Dashboard() {
           </Link>
 
           {/* NEXUSPASS Card */}
-          <Link href="/projects/nexuspass" className="group bg-white rounded-xl shadow-sm hover:shadow-lg transition p-6 border border-gray-100">
+          <Link href="/nexuspass" className="group bg-white rounded-xl shadow-sm hover:shadow-lg transition p-6 border border-gray-100">
             <div className="h-12 w-12 rounded-lg bg-blue-600 text-white flex items-center justify-center text-2xl mb-4">
               🪪
             </div>
@@ -140,7 +147,7 @@ export default function Dashboard() {
           </Link>
 
           {/* PROJECT LIKHA Card */}
-          <Link href="/projects/likha" className="group bg-white rounded-xl shadow-sm hover:shadow-lg transition p-6 border border-gray-100">
+          <Link href="/likha" className="group bg-white rounded-xl shadow-sm hover:shadow-lg transition p-6 border border-gray-100">
             <div className="h-12 w-12 rounded-lg bg-green-600 text-white flex items-center justify-center text-2xl mb-4">
               📚
             </div>
