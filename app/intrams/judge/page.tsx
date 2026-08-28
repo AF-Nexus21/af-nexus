@@ -199,9 +199,9 @@ export default function JudgePage() {
           </div>
         </div>
 
-        {/* Segment and Gender Selectors */}
+        {/* ✅ CATEGORY PROGRESS TRACKER */}
         <div className="bg-white rounded-lg shadow-md p-4 mb-6">
-          <div className="flex gap-4">
+          <div className="flex items-center justify-between flex-wrap gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700">Gender</label>
               <select
@@ -225,6 +225,30 @@ export default function JudgePage() {
                 <option value="Ramp Modelling">Ramp Modelling</option>
                 <option value="Q&A">Q&A</option>
               </select>
+            </div>
+          </div>
+        </div>
+
+        {/* ✅ PROGRESS INDICATOR */}
+        <div className="bg-white rounded-lg shadow-md p-4 mb-6">
+          <div className="flex items-center gap-6">
+            <div className="flex-1">
+              <p className="text-sm font-semibold text-gray-600">Napiling Category:</p>
+              <p className="text-lg font-bold text-blue-700">
+                {gender === "female" ? "Female" : "Male"} - {segment}
+              </p>
+            </div>
+            <div className="flex-1">
+              <p className="text-sm font-semibold text-gray-600">Susunod na Category:</p>
+              <p className="text-lg font-bold text-purple-700">
+                {gender === "female" ? "Male" : "Female"} - {segment}
+              </p>
+            </div>
+            <div className="flex-1">
+              <p className="text-sm font-semibold text-gray-600">Natapos na Category:</p>
+              <p className="text-lg font-bold text-green-700">
+                {gender === "female" ? "Female" : "Male"} - Sport Attire
+              </p>
             </div>
           </div>
         </div>
