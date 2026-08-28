@@ -3,9 +3,8 @@ import "./globals.css";
 import FloatingChatbot from "./components/FloatingChatbot";
 
 export const metadata: Metadata = {
-  title: "NEXUSPASS",
-  description: "Digital ID Card System",
-  manifest: "/manifest.json", // IMPORTANTE ITO!
+  title: "AF-NEXUS",
+  description: "Smarter School Management Starts Here",
 };
 
 export default function RootLayout({
@@ -17,7 +16,6 @@ export default function RootLayout({
     <html lang="en">
       <body className="antialiased">
         {children}
-        {/* ✅ FLOATING CHATBOT SA LAHAT NG PAGES */}
         <FloatingChatbot />
       </body>
     </html>
