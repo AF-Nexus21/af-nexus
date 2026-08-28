@@ -90,7 +90,7 @@ export default function ViewScoresPage() {
             <button
               onClick={async () => {
                 await supabase.auth.signOut();
-                router.push("/intrams/judge/login");
+                router.push("login");
               }}
               className="bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-red-700"
             >
