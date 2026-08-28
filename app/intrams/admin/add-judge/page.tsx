@@ -15,9 +15,16 @@ export default function AddJudgePage() {
   const [message, setMessage] = useState<string | null>(null);
   const [messageType, setMessageType] = useState<"error" | "success" | "">("");
 
+  const isFormComplete = 
+    name.trim() && 
+    email.trim() && 
+    password.length >= 8 && 
+    confirmPassword.length >= 8;
+
   const validateForm = () => {
     if (!name.trim()) return "Judge Name is required.";
     if (!email.trim()) return "Email is required.";
+    if (!email.includes("@")) return "Email must be a valid email address.";
     if (password.length < 8) return "Password must be at least 8 characters long.";
     if (!/[A-Z]/.test(password)) return "Password must contain at least one uppercase letter.";
     if (!/[0-9]/.test(password)) return "Password must contain at least one number.";
@@ -203,7 +210,7 @@ export default function AddJudgePage() {
 
             <button
               type="submit"
-              disabled={loading}
+              disabled={!isFormComplete || loading}
               className="w-full rounded-lg bg-blue-600 px-6 py-3 font-semibold text-white transition hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? "Loading..." : "Add Judge"}
