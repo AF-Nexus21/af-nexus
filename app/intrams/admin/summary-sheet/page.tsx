@@ -14,6 +14,8 @@ export default function SummarySheetPage() {
   const [gender, setGender] = useState<string>("female");
   const [isWinnerModalOpen, setIsWinnerModalOpen] = useState<boolean>(false);
   const [winner, setWinner] = useState<any>(null);
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState<boolean>(false);
+  const [profileCandidate, setProfileCandidate] = useState<any>(null);
 
   useEffect(() => {
     fetchData();
@@ -119,6 +121,12 @@ export default function SummarySheetPage() {
     setIsWinnerModalOpen(true);
   }
 
+  // ✅ Open profile modal
+  function openProfileModal(candidate: any) {
+    setProfileCandidate(candidate);
+    setIsProfileModalOpen(true);
+  }
+
   return (
     <main className="min-h-screen bg-gray-100">
       <div className="mx-auto max-w-6xl px-4 py-8">
@@ -134,7 +142,7 @@ export default function SummarySheetPage() {
             <button
               onClick={async () => {
                 await supabase.auth.signOut();
-                router.push("login");
+                router.push("/login");
               }}
               className="bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-red-700"
             >
@@ -161,29 +169,43 @@ export default function SummarySheetPage() {
         </div>
 
         {/* Special Awards */}
-        <div className="mt-8 bg-white rounded-lg shadow-md p-6">
+        <div className="bg-white rounded-lg shadow-md p-6">
           <h2 className="text-xl font-semibold mb-4">🏅 Special Awards</h2>
-          <div className="grid gap-6 md:grid-cols-4">
-            <div className="bg-orange-50 rounded-lg p-4">
+          <div className="grid gap-6 md:grid-cols-3">
+            {/* Best In Production Number */}
+            <button
+              onClick={() => openProfileModal(bestProduction?.candidate)}
+              className="bg-orange-50 rounded-lg p-4 hover:bg-orange-100 transition text-left"
+            >
               <p className="text-xs font-semibold text-orange-700">Best In Production Number</p>
               <p className="mt-2 text-lg font-bold text-gray-900">{bestProduction?.candidate?.name || "TBD"}</p>
               <p className="text-sm text-gray-600">{bestProduction?.score || 0}</p>
-            </div>
-            <div className="bg-blue-50 rounded-lg p-4">
+            </button>
+
+            {/* Best In Sport Attire */}
+            <button
+              onClick={() => openProfileModal(bestSportAttire?.candidate)}
+              className="bg-blue-50 rounded-lg p-4 hover:bg-blue-100 transition text-left"
+            >
               <p className="text-xs font-semibold text-blue-700">Best In Sport Attire</p>
               <p className="mt-2 text-lg font-bold text-gray-900">{bestSportAttire?.candidate?.name || "TBD"}</p>
               <p className="text-sm text-gray-600">{bestSportAttire?.score || 0}</p>
-            </div>
-            <div className="bg-green-50 rounded-lg p-4">
+            </button>
+
+            {/* Best In Q&A */}
+            <button
+              onClick={() => openProfileModal(bestQnA?.candidate)}
+              className="bg-green-50 rounded-lg p-4 hover:bg-green-100 transition text-left"
+            >
               <p className="text-xs font-semibold text-green-700">Best In Q&A</p>
               <p className="mt-2 text-lg font-bold text-gray-900">{bestQnA?.candidate?.name || "TBD"}</p>
               <p className="text-sm text-gray-600">{bestQnA?.score || 0}</p>
-            </div>
+            </button>
           </div>
         </div>
 
         {/* Summary Sheet Table */}
-        <div className="mt-8 bg-white rounded-lg shadow-md p-6">
+        <div className="bg-white rounded-lg shadow-md p-6">
           <h2 className="text-xl font-semibold mb-6">🏆 Final Summary</h2>
           <div className="overflow-x-auto">
             <table className="min-w-full">
@@ -204,14 +226,17 @@ export default function SummarySheetPage() {
                   <tr key={candidate.id} className={index === 0 ? "bg-yellow-100" : ""}>
                     <td className="px-4 py-2">{candidate.number}</td>
                     <td className="px-4 py-2">
-                      <div className="flex items-center gap-3">
+                      <button
+                        onClick={() => openProfileModal(candidate)}
+                        className="flex items-center gap-3 hover:opacity-80 transition"
+                      >
                         <img
                           src={candidate.photo_url || "/default-avatar.png"}
                           alt={candidate.name}
                           className="h-10 w-10 rounded-full object-cover"
                         />
                         <span>{candidate.name}</span>
-                      </div>
+                      </button>
                     </td>
                     <td className="px-4 py-2">{computeSegmentScore(candidate, "Production Number")}</td>
                     <td className="px-4 py-2">{computeSegmentScore(candidate, "Sport Attire")}</td>
@@ -281,6 +306,32 @@ export default function SummarySheetPage() {
               <button
                 onClick={() => setIsWinnerModalOpen(false)}
                 className="mt-6 rounded-lg bg-white px-6 py-2 text-lg font-semibold text-purple-700 hover:bg-yellow-100"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ✅ PROFILE MODAL */}
+      {isProfileModalOpen && profileCandidate && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70">
+          <div className="relative w-full max-w-md rounded-3xl bg-white p-8 text-center shadow-2xl">
+            <div className="relative">
+              <img
+                src={profileCandidate.photo_url || "/default-avatar.png"}
+                alt={profileCandidate.name}
+                className="mx-auto h-40 w-32 object-cover rounded-2xl shadow-lg"
+              />
+              <p className="mt-4 text-3xl font-bold text-gray-900">{profileCandidate.name}</p>
+              <p className="mt-2 text-sm text-gray-600">{profileCandidate.section}</p>
+              <p className="mt-2 text-xs text-gray-500">
+                {profileCandidate.number} - {gender === "female" ? "Female" : "Male"} Category
+              </p>
+              <button
+                onClick={() => setIsProfileModalOpen(false)}
+                className="mt-6 rounded-lg bg-purple-600 px-6 py-2 text-lg font-semibold text-white hover:bg-purple-700"
               >
                 Close
               </button>
