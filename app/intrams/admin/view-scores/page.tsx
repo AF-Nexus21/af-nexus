@@ -1,12 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useRouter } from "next/navigation"; // ✅ I-IMPORT MO ITO
 import { supabase } from "@/lib/supabase";
 
 export default function ViewScoresPage() {
-  const router = useRouter();
+  const router = useRouter(); // ✅ I-ADD MO ITO
   const [candidates, setCandidates] = useState<any[]>([]);
   const [criteria, setCriteria] = useState<any[]>([]);
   const [scores, setScores] = useState<any[]>([]);
@@ -16,25 +16,9 @@ export default function ViewScoresPage() {
   const [segment, setSegment] = useState<string>("Sport Attire");
 
   useEffect(() => {
-    async function checkAdmin() {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        router.push("/intrams/judge/login");
-        return;
-      }
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("role")
-        .eq("id", user.id)
-        .single();
-      if (profile?.role !== "admin") {
-        router.push("/intrams/judge/login");
-        return;
-      }
-      setLoading(false);
-    }
-    checkAdmin();
-  }, [router]);
+    // ✅ Diretso pasok na tayo, hindi na kailangan ng login check!
+    fetchData();
+  }, []);
 
   async function fetchData() {
     const { data: candidatesData } = await supabase.from("candidates").select("*").order("number");
@@ -47,10 +31,6 @@ export default function ViewScoresPage() {
     setJudges(judgesData || []);
     setLoading(false);
   }
-
-  useEffect(() => {
-    fetchData();
-  }, []);
 
   if (loading) {
     return (
