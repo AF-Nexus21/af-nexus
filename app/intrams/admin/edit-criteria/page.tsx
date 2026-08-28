@@ -1,12 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 
 export default function EditCriteriaPage() {
-  const router = useRouter();
   const [criteriaList, setCriteriaList] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState<string | null>(null);
@@ -21,26 +19,9 @@ export default function EditCriteriaPage() {
   const [gender, setGender] = useState("");
 
   useEffect(() => {
-    // Check kung admin
-    async function checkAdmin() {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        router.push("/intrams/judge/login");
-        return;
-      }
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("role")
-        .eq("id", user.id)
-        .single();
-      if (profile?.role !== "admin") {
-        router.push("/intrams/judge/login");
-        return;
-      }
-      setLoading(false);
-    }
-    checkAdmin();
-  }, [router]);
+    // ✅ Diretso pasok na tayo, hindi na kailangan ng login check!
+    fetchCriteria();
+  }, []);
 
   async function fetchCriteria() {
     const { data } = await supabase
@@ -49,11 +30,8 @@ export default function EditCriteriaPage() {
       .order("segment")
       .order("sort_order");
     setCriteriaList(data || []);
+    setLoading(false);
   }
-
-  useEffect(() => {
-    fetchCriteria();
-  }, []);
 
   async function handleAddCriteria() {
     if (!name.trim() || !segment.trim()) {
@@ -170,7 +148,7 @@ export default function EditCriteriaPage() {
     }
   }
 
-  if (loading && criteriaList.length === 0) {
+  if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gray-100">
         <div className="text-lg text-gray-500">Loading Criteria...</div>
@@ -186,8 +164,8 @@ export default function EditCriteriaPage() {
             <h1 className="text-3xl font-bold text-gray-900">📝 Edit Criteria</h1>
             <p className="text-gray-600">Manage all scoring criteria for Mr. & Miss Intrams 2026</p>
           </div>
-          <Link href="/intrams/admin" className="text-blue-600 hover:text-blue-800">
-            ← Back to Admin
+          <Link href="/intrams/admin/dashboard" className="text-blue-600 hover:text-blue-800">
+            ← Back to Admin Dashboard
           </Link>
         </div>
 
