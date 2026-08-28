@@ -16,15 +16,32 @@ export default function JudgePage() {
   const [segment, setSegment] = useState<string>("Sport Attire");
 
   useEffect(() => {
-    // Check if user is logged in
-    supabase.auth.getUser().then(({ data }) => {
-      if (!data.user) {
+    // ✅ CHECK: Kailangan ba talaga ng judge na naka-login?
+    const checkUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+
+      if (!user) {
         router.push("/intrams/judge/login");
         return;
       }
-      setUser(data.user);
-    });
 
+      // ✅ Kunin natin yung ROLE ng user
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", user.id)
+        .maybeSingle();
+
+      // ✅ KUNG HINDI JUDGE, I-REDIRECT SA LOGIN
+      if (profile?.role !== "judge") {
+        router.push("/intrams/judge/login");
+        return;
+      }
+
+      setUser(user);
+    };
+
+    checkUser();
     fetchCandidates();
     fetchCriteria();
     fetchScores();
@@ -77,12 +94,14 @@ export default function JudgePage() {
     router.push("/intrams/judge/login");
   }
 
-  // Filter criteria based on gender and segment
+  // ✅ FILTER: Yung criteria lang ng napiling segment at gender
   const filteredCriteria = criteria.filter(
-    (c) => c.gender === gender || c.gender === null || c.gender === ""
+    (c) => 
+      (c.segment === segment) && 
+      (c.gender === gender || c.gender === null || c.gender === "")
   );
 
-  // Filter candidates based on gender
+  // ✅ FILTER: Yung candidates lang ng napiling gender
   const filteredCandidates = candidates.filter((c) => c.gender === gender);
 
   return (
@@ -165,10 +184,10 @@ export default function JudgePage() {
                 {filteredCandidates.map((candidate) => (
                   <tr key={candidate.id} className="border-b">
                     <td className="px-4 py-3">
+                      {/* ✅ NUMBER LANG ANG MAKIKITA, HINDI PANGALAN */}
                       <div className="flex items-center gap-3">
                         <span className="font-bold">#{candidate.number}</span>
                         <div>
-                          <p className="font-semibold">{candidate.name}</p>
                           <p className="text-xs text-gray-600">{candidate.section}</p>
                         </div>
                       </div>
