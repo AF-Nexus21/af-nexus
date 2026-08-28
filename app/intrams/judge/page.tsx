@@ -210,6 +210,14 @@ export default function JudgePage() {
   // ✅ FILTER: Yung candidates lang ng napiling gender
   const filteredCandidates = candidates.filter((c) => c.gender === gender);
 
+  // ✅ COLOR CODING PARA SA MGA CATEGORY
+  const categoryColors: Record<string, string> = {
+    "sport-attire": "bg-red-100 text-red-700",
+    "production-number": "bg-blue-100 text-blue-700",
+    "ramp-modelling": "bg-yellow-100 text-yellow-700",
+    "qa": "bg-green-100 text-green-700",
+  };
+
   return (
     <main className="min-h-screen bg-gray-100">
       <div className="mx-auto max-w-6xl px-4 py-8">
@@ -231,7 +239,7 @@ export default function JudgePage() {
           </div>
         </div>
 
-        {/* ✅ BUONG PANGALAN NG JUDGE (CAPS LOCK) - SWAPPED POSITION */}
+        {/* ✅ BUONG PANGALAN NG JUDGE (CAPS LOCK) */}
         <div className="mb-8 bg-gradient-to-r from-purple-600 to-blue-600 rounded-xl p-6 text-center">
           <h2 className="text-3xl font-bold text-white uppercase">
             {judgeName || "Judge"}
@@ -402,8 +410,13 @@ export default function JudgePage() {
               <button
                 onClick={() => {
                   setIsCategoryDoneModalOpen(false);
-                  // ✅ I-SWITCH GENDER
-                  setGender(gender === "female" ? "male" : "female");
+                  // ✅ I-STAY LANG SA FEMALE, MAG-NEXT SEGMENT NA LANG
+                  setSegment((prev) => {
+                    if (prev === "Sport Attire") return "Production Number";
+                    if (prev === "Production Number") return "Ramp Modelling";
+                    if (prev === "Ramp Modelling") return "Q&A";
+                    return "Sport Attire";
+                  });
                 }}
                 className="mt-6 w-full rounded-lg bg-white px-6 py-3 font-semibold text-purple-700 transition hover:bg-purple-100"
               >
