@@ -95,15 +95,15 @@ export default function AddJudgePage() {
         return;
       }
 
-      // Step 3: Insert sa 'profiles' table
+      // Step 3: I-UPDATE yung existing profile (para hindi ma-duplicate)
       const { error: profileError } = await supabase
         .from("profiles")
-        .insert({
-          id: user.id,
+        .update({
           role: "judge",
           email: email,
           first_name: name,
-        });
+        })
+        .eq("id", user.id);
 
       if (profileError) {
         setMessage(`Profile creation failed: ${profileError.message}`);
