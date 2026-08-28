@@ -11,7 +11,8 @@ export default function AddCandidatePage() {
   const [name, setName] = useState("");
   const [gender, setGender] = useState("male");
   const [section, setSection] = useState("");
-  const [photoUrl, setPhotoUrl] = useState("");
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [messageType, setMessageType] = useState<"error" | "success" | "">("");
@@ -21,6 +22,16 @@ export default function AddCandidatePage() {
     if (!name.trim()) return "Candidate Name is required.";
     if (!section.trim()) return "Section is required.";
     return null;
+  };
+
+  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      setPhotoFile(file);
+      const reader = new FileReader();
+      reader.onload = () => setPhotoPreview(reader.result as string);
+      reader.readAsDataURL(file);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -38,6 +49,30 @@ export default function AddCandidatePage() {
     setMessageType("");
 
     try {
+      // 1. I-upload muna yung photo sa Supabase Storage
+      let photoUrl = null;
+      if (photoFile) {
+        const fileExt = photoFile.name.split('.').pop();
+        const fileName = `candidate-${number}-${Date.now()}.${fileExt}`;
+        const filePath = `candidate-photos/${fileName}`;
+        
+        const { error: uploadError } = await supabase.storage
+          .from('candidate-photos')
+          .upload(filePath, photoFile);
+        
+        if (uploadError) {
+          setMessage(`Photo upload failed: ${uploadError.message}`);
+          setMessageType("error");
+          return;
+        }
+        
+        const { data } = supabase.storage
+          .from('candidate-photos')
+          .getPublicUrl(filePath);
+        photoUrl = data.publicUrl;
+      }
+
+      // 2. I-insert yung candidate sa database
       const { error } = await supabase.from("candidates").insert({
         number: parseInt(number),
         name: name,
@@ -61,7 +96,8 @@ export default function AddCandidatePage() {
       setName("");
       setGender("male");
       setSection("");
-      setPhotoUrl("");
+      setPhotoFile(null);
+      setPhotoPreview(null);
 
       setTimeout(() => {
         router.push("/intrams/admin/dashboard");
@@ -72,95 +108,6 @@ export default function AddCandidatePage() {
       setLoading(false);
     }
   };
-
-  // ✅ RESET FORM
-  async function handleReset() {
-    // Kumpirmahin muna
-    const confirmReset = await window.confirm(
-      "Are you sure you want to reset the form? This will clear all fields."
-    );
-    if (!confirmReset) return;
-
-    setNumber("");
-    setName("");
-    setGender("male");
-    setSection("");
-    setPhotoUrl("");
-    setMessage(null);
-    setMessageType("");
-  }
-
-  // ✅ DELETE CANDIDATE
-  async function handleDelete() {
-    // Kailangan mo ng candidate ID para ma-delete
-    if (!number.trim()) {
-      setMessage("Please enter a candidate number to delete.");
-      setMessageType("error");
-      return;
-    }
-
-    const confirmDelete = await window.confirm(
-      `Are you sure you want to delete candidate #${number}?`
-    );
-    if (!confirmDelete) return;
-
-    setLoading(true);
-    setMessage(null);
-    setMessageType("");
-
-    try {
-      // Hanapin yung candidate base sa number at gender
-      const { data, error: fetchError } = await supabase
-        .from("candidates")
-        .select("id")
-        .eq("number", parseInt(number))
-        .eq("gender", gender)
-        .maybeSingle();
-
-      if (fetchError) {
-        setMessage(fetchError.message);
-        setMessageType("error");
-        return;
-      }
-
-      if (!data) {
-        setMessage("Candidate not found. Please check the number and gender.");
-        setMessageType("error");
-        return;
-      }
-
-      // I-delete yung candidate
-      const { error } = await supabase
-        .from("candidates")
-        .delete()
-        .eq("id", data.id);
-
-      if (error) {
-        setMessage(error.message);
-        setMessageType("error");
-        return;
-      }
-
-      setMessage("Candidate deleted successfully!");
-      setMessageType("success");
-      setLoading(false);
-
-      // Reset form pagkatapos mag-delete
-      setNumber("");
-      setName("");
-      setGender("male");
-      setSection("");
-      setPhotoUrl("");
-
-      setTimeout(() => {
-        router.push("/intrams/admin/dashboard");
-      }, 1500);
-    } catch (error) {
-      setMessage("Something went wrong. Please try again.");
-      setMessageType("error");
-      setLoading(false);
-    }
-  }
 
   return (
     <main className="min-h-screen bg-gray-100">
@@ -227,14 +174,20 @@ export default function AddCandidatePage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700">Photo URL (Optional)</label>
+              <label className="block text-sm font-medium text-gray-700">Photo Upload</label>
               <input
-                type="text"
-                value={photoUrl}
-                onChange={(e) => setPhotoUrl(e.target.value)}
+                type="file"
+                accept="image/*"
+                onChange={handlePhotoChange}
                 className="mt-1 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="https://example.com/photo.jpg"
               />
+              {photoPreview && (
+                <img
+                  src={photoPreview}
+                  alt="Preview"
+                  className="mt-2 h-24 w-16 object-cover rounded-lg"
+                />
+              )}
             </div>
 
             {message && (
@@ -251,31 +204,10 @@ export default function AddCandidatePage() {
               </div>
             )}
 
-            {/* ✅ RESET AT DELETE BUTTONS */}
-            <div className="mt-4 flex gap-4">
-              <button
-                type="button"
-                onClick={handleReset}
-                disabled={loading}
-                className="w-1/2 rounded-lg bg-gray-600 px-6 py-3 font-semibold text-white transition hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {loading ? "Loading..." : "Reset"}
-              </button>
-
-              <button
-                type="button"
-                onClick={handleDelete}
-                disabled={loading}
-                className="w-1/2 rounded-lg bg-red-600 px-6 py-3 font-semibold text-white transition hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {loading ? "Loading..." : "Delete"}
-              </button>
-            </div>
-
             <button
               type="submit"
               disabled={loading}
-              className="mt-4 w-full rounded-lg bg-purple-600 px-6 py-3 font-semibold text-white transition hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full rounded-lg bg-purple-600 px-6 py-3 font-semibold text-white transition hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? "Loading..." : "Add Candidate"}
             </button>
