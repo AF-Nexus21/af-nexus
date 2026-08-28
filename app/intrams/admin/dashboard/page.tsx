@@ -2,18 +2,17 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation"; // ✅ I-IMPORT MO ITO
+import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 
 export default function AdminDashboard() {
-  const router = useRouter(); // ✅ I-ADD MO ITO
+  const router = useRouter();
   const [candidates, setCandidates] = useState<any[]>([]);
   const [judges, setJudges] = useState<any[]>([]);
   const [criteria, setCriteria] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // ✅ Diretso pasok na tayo, hindi na kailangan ng login check!
     fetchData();
   }, []);
 
@@ -114,6 +113,20 @@ export default function AdminDashboard() {
               className="inline-block rounded-lg bg-orange-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-orange-700"
             >
               Go to Edit Criteria
+            </Link>
+          </div>
+
+          {/* Summary Sheet */}
+          <div className="bg-white rounded-lg shadow-md p-6">
+            <h2 className="text-xl font-semibold mb-4">📋 Summary Sheet</h2>
+            <p className="text-sm text-gray-600 mb-4">
+              Final results for Mr. & Miss Intrams 2026.
+            </p>
+            <Link
+              href="/intrams/admin/summary-sheet"
+              className="inline-block rounded-lg bg-yellow-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-yellow-700"
+            >
+              Go to Summary Sheet
             </Link>
           </div>
         </div>
