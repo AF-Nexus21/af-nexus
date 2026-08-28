@@ -31,6 +31,9 @@ export default function JudgePage() {
     "male-qa": false,
   });
 
+  // ✅ BAGONG STATE PARA SA PANGALAN NG JUDGE
+  const [judgeName, setJudgeName] = useState("");
+
   useEffect(() => {
     // ✅ CHECK: Kailangan ba talaga ng judge na naka-login?
     const checkUser = async () => {
@@ -51,6 +54,19 @@ export default function JudgePage() {
         return;
       }
       setUser(user);
+
+      // ✅ KUNIN NATIN YUNG BUONG PANGALAN NG JUDGE
+      const { data: judgeProfile } = await supabase
+        .from("profiles")
+        .select("first_name, last_name")
+        .eq("id", user.id)
+        .maybeSingle();
+
+      if (judgeProfile?.first_name) {
+        setJudgeName(judgeProfile.first_name + (judgeProfile.last_name ? " " + judgeProfile.last_name : ""));
+      } else {
+        setJudgeName(user.email || "Judge");
+      }
     };
     checkUser();
     fetchCandidates();
@@ -213,6 +229,14 @@ export default function JudgePage() {
               Logout
             </button>
           </div>
+        </div>
+
+        {/* ✅ BUONG PANGALAN NG JUDGE (CAPS LOCK) */}
+        <div className="mb-8 bg-gradient-to-r from-purple-600 to-blue-600 rounded-xl p-6 text-center">
+          <p className="text-sm font-semibold text-purple-200">JUDGE</p>
+          <h2 className="mt-1 text-3xl font-bold text-white uppercase">
+            {judgeName || "Judge"}
+          </h2>
         </div>
 
         {/* ✅ CATEGORY CHECKBOX TRACKER */}
