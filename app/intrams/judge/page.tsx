@@ -97,8 +97,29 @@ export default function JudgePage() {
     return total.toFixed(2);
   }
 
+  // ✅ VALIDATION: I-check kung kumpleto ba ang lahat ng entries
+  function isFormComplete() {
+    let allFilled = true;
+    filteredCandidates.forEach((candidate) => {
+      filteredCriteria.forEach((criterion) => {
+        const inputValue = scoreInputs[`${candidate.id}-${criterion.id}`];
+        if (!inputValue || isNaN(parseFloat(inputValue))) {
+          allFilled = false;
+        }
+      });
+    });
+    return allFilled;
+  }
+
   // ✅ SUBMIT ALL SCORES
   async function submitAllScores() {
+    // ✅ VALIDATION: Kung hindi kumpleto, huwag mag-submit
+    if (!isFormComplete()) {
+      setMessage("Please fill in all score entries before submitting.");
+      setMessageType("error");
+      return;
+    }
+
     setLoading(true);
     setSubmitSuccess(false);
     try {
@@ -131,6 +152,9 @@ export default function JudgePage() {
       setTimeout(() => {
         setIsSuccessModalOpen(false);
       }, 2500); // 2.5 seconds awtomatikong magsasara
+      
+      // ✅ I-CLEAR YUNG SCORE INPUTS PARA SA SUSUNOD NA CATEGORY
+      setScoreInputs({});
     } catch (error) {
       setMessage("Something went wrong. Please try again.");
       setMessageType("error");
@@ -254,7 +278,7 @@ export default function JudgePage() {
           <div className="mt-6 text-center">
             <button
               onClick={submitAllScores}
-              disabled={loading}
+              disabled={!isFormComplete() || loading}
               className="w-full rounded-lg bg-blue-600 px-6 py-3 font-semibold text-white transition hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? "Loading..." : "Submit All Scores"}
