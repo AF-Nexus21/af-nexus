@@ -2,11 +2,9 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation"; // ✅ I-IMPORT MO ITO
 import { supabase } from "@/lib/supabase";
 
 export default function ViewScoresPage() {
-  const router = useRouter(); // ✅ I-ADD MO ITO
   const [candidates, setCandidates] = useState<any[]>([]);
   const [criteria, setCriteria] = useState<any[]>([]);
   const [scores, setScores] = useState<any[]>([]);
@@ -40,15 +38,17 @@ export default function ViewScoresPage() {
     );
   }
 
-  // Filter criteria based on gender and segment
+  // ✅ FILTER: Segment at Gender
   const filteredCriteria = criteria.filter(
-    (c) => c.gender === gender || c.gender === null || c.gender === ""
+    (c) => 
+      (c.segment === segment) && 
+      (c.gender === gender || c.gender === null || c.gender === "")
   );
 
   // Filter candidates based on gender
   const filteredCandidates = candidates.filter((c) => c.gender === gender);
 
-  // Compute tabulation
+  // ✅ Compute tabulation
   function computeTabulation() {
     const results = filteredCandidates.map((candidate) => {
       const candidateScores = scores.filter((s) => s.candidate_id === candidate.id);
