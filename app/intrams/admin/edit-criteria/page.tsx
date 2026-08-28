@@ -19,13 +19,6 @@ export default function EditCriteriaPage() {
   const [gender, setGender] = useState("");
 
   useEffect(() => {
-    // ✅ MAHALAGA: Siguraduhing may supabase client
-    if (!supabase) {
-      setMessage("Supabase is not configured. Please check your environment variables.");
-      setLoading(false);
-      return;
-    }
-
     fetchCriteria();
   }, []);
 
@@ -53,7 +46,7 @@ export default function EditCriteriaPage() {
     }
   }
 
-  // ✅ VALIDATION: Dapat kumpleto bago ma-click
+  // ✅ VALIDATION: Ang form ay "complete" kung may Name at Segment
   const isFormComplete = 
     name.trim() && 
     segment && 
