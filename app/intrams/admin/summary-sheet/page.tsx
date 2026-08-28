@@ -16,6 +16,7 @@ export default function SummarySheetPage() {
   const [winner, setWinner] = useState<any>(null);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState<boolean>(false);
   const [profileCandidate, setProfileCandidate] = useState<any>(null);
+  const [awardTitle, setAwardTitle] = useState<string>("");
 
   useEffect(() => {
     fetchData();
@@ -121,9 +122,10 @@ export default function SummarySheetPage() {
     setIsWinnerModalOpen(true);
   }
 
-  // ✅ Open profile modal
-  function openProfileModal(candidate: any) {
+  // ✅ Open profile modal with award title
+  function openProfileModal(candidate: any, award: string) {
     setProfileCandidate(candidate);
+    setAwardTitle(award);
     setIsProfileModalOpen(true);
   }
 
@@ -174,7 +176,7 @@ export default function SummarySheetPage() {
           <div className="grid gap-6 md:grid-cols-3">
             {/* Best In Production Number */}
             <button
-              onClick={() => openProfileModal(bestProduction?.candidate)}
+              onClick={() => openProfileModal(bestProduction?.candidate, "Best In Production Number")}
               className="bg-orange-50 rounded-lg p-4 hover:bg-orange-100 transition text-left"
             >
               <p className="text-xs font-semibold text-orange-700">Best In Production Number</p>
@@ -184,7 +186,7 @@ export default function SummarySheetPage() {
 
             {/* Best In Sport Attire */}
             <button
-              onClick={() => openProfileModal(bestSportAttire?.candidate)}
+              onClick={() => openProfileModal(bestSportAttire?.candidate, "Best In Sport Attire")}
               className="bg-blue-50 rounded-lg p-4 hover:bg-blue-100 transition text-left"
             >
               <p className="text-xs font-semibold text-blue-700">Best In Sport Attire</p>
@@ -194,7 +196,7 @@ export default function SummarySheetPage() {
 
             {/* Best In Q&A */}
             <button
-              onClick={() => openProfileModal(bestQnA?.candidate)}
+              onClick={() => openProfileModal(bestQnA?.candidate, "Best In Q&A")}
               className="bg-green-50 rounded-lg p-4 hover:bg-green-100 transition text-left"
             >
               <p className="text-xs font-semibold text-green-700">Best In Q&A</p>
@@ -227,7 +229,7 @@ export default function SummarySheetPage() {
                     <td className="px-4 py-2">{candidate.number}</td>
                     <td className="px-4 py-2">
                       <button
-                        onClick={() => openProfileModal(candidate)}
+                        onClick={() => openProfileModal(candidate, "Overall Winner")}
                         className="flex items-center gap-3 hover:opacity-80 transition"
                       >
                         <img
@@ -324,7 +326,10 @@ export default function SummarySheetPage() {
                 alt={profileCandidate.name}
                 className="mx-auto h-40 w-32 object-cover rounded-2xl shadow-lg"
               />
-              <p className="mt-4 text-3xl font-bold text-gray-900">{profileCandidate.name}</p>
+              <p className="mt-4 text-4xl font-bold text-purple-600">
+                {awardTitle}
+              </p>
+              <p className="mt-2 text-3xl font-bold text-gray-900">{profileCandidate.name}</p>
               <p className="mt-2 text-sm text-gray-600">{profileCandidate.section}</p>
               <p className="mt-2 text-xs text-gray-500">
                 {profileCandidate.number} - {gender === "female" ? "Female" : "Male"} Category
