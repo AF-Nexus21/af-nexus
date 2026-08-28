@@ -174,8 +174,8 @@ export default function JudgePage() {
       }
       setSubmitSuccess(true);
       setLoading(false);
-      // ✅ I-CHECK YUNG CATEGORY SA TRACKER
-      const categoryKey = `${gender}-${segment.toLowerCase().replace(/ /g, "-")}`;
+      // ✅ I-NORMALIZE YUNG CATEGORY KEY (TANGGALIN YUNG &)
+      const categoryKey = `${gender}-${segment.toLowerCase().replace(/&/g, "").replace(/ /g, "-")}`;
       setCategoryDone({
         ...categoryDone,
         [categoryKey]: true,
