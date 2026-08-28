@@ -174,6 +174,41 @@ export default function EditCriteriaPage() {
     }
   }
 
+  // ✅ RESET ALL FUNCTION
+  async function handleResetAll() {
+    const confirmReset = await window.confirm(
+      "Are you sure you want to reset ALL criteria? This will delete all existing criteria entries."
+    );
+    if (!confirmReset) return;
+
+    setLoading(true);
+    setMessage(null);
+    setMessageType("");
+
+    try {
+      const { error } = await supabase
+        .from("criteria")
+        .delete()
+        .gt("id", "00000000-0000-0000-0000-000000000000"); // Delete all entries
+
+      if (error) {
+        setMessage(error.message);
+        setMessageType("error");
+        return;
+      }
+
+      setMessage("All criteria reset successfully!");
+      setMessageType("success");
+      setLoading(false);
+
+      fetchCriteria();
+    } catch (error) {
+      setMessage("Something went wrong. Please try again.");
+      setMessageType("error");
+      setLoading(false);
+    }
+  }
+
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gray-100">
@@ -190,9 +225,18 @@ export default function EditCriteriaPage() {
             <h1 className="text-3xl font-bold text-gray-900">📝 Edit Criteria</h1>
             <p className="text-gray-600">Manage all scoring criteria for Mr. & Miss Intrams 2026</p>
           </div>
-          <Link href="/intrams/admin/dashboard" className="text-blue-600 hover:text-blue-800">
-            ← Back to Admin Dashboard
-          </Link>
+          <div className="flex gap-4">
+            <Link href="/intrams/admin/dashboard" className="text-blue-600 hover:text-blue-800">
+              ← Back to Admin Dashboard
+            </Link>
+            <button
+              onClick={handleResetAll}
+              disabled={loading}
+              className="bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Reset All
+            </button>
+          </div>
         </div>
 
         {/* Add New Criteria */}
