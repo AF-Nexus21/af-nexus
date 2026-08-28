@@ -14,33 +14,32 @@ export default function JudgePage() {
   const [submitSuccess, setSubmitSuccess] = useState<boolean>(false);
   const [gender, setGender] = useState<string>("female");
   const [segment, setSegment] = useState<string>("Sport Attire");
+  const [scoreInputs, setScoreInputs] = useState<Record<string, string>>({});
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState<string | null>(null);
+  const [messageType, setMessageType] = useState<"error" | "success" | "">("");
 
   useEffect(() => {
     // ✅ CHECK: Kailangan ba talaga ng judge na naka-login?
     const checkUser = async () => {
       const { data: { user } } = await supabase.auth.getUser();
-
       if (!user) {
         router.push("/intrams/judge/login");
         return;
       }
-
       // ✅ Kunin natin yung ROLE ng user
       const { data: profile } = await supabase
         .from("profiles")
         .select("role")
         .eq("id", user.id)
         .maybeSingle();
-
       // ✅ KUNG HINDI JUDGE, I-REDIRECT SA LOGIN
       if (profile?.role !== "judge") {
         router.push("/intrams/judge/login");
         return;
       }
-
       setUser(user);
     };
-
     checkUser();
     fetchCandidates();
     fetchCriteria();
@@ -70,22 +69,68 @@ export default function JudgePage() {
     setScores(data || []);
   }
 
-  async function submitScore(candidateId: string, criteriaId: string, score: number) {
-    const { error } = await supabase
-      .from("scores")
-      .upsert(
-        {
-          judge_id: user.id,
-          candidate_id: candidateId,
-          criteria_id: criteriaId,
-          score: score,
-        },
-        { onConflict: 'judge_id,candidate_id,criteria_id' }
-      );
+  // ✅ VALIDATION: Max 10 points
+  function handleScoreChange(candidateId: string, criteriaId: string, value: string) {
+    const numValue = parseFloat(value);
+    if (!isNaN(numValue) && numValue > 10) {
+      return; // Hindi mag-a-accept ng higit sa 10
+    }
+    setScoreInputs({
+      ...scoreInputs,
+      [`${candidateId}-${criteriaId}`]: value,
+    });
+  }
 
-    if (!error) {
+  // ✅ COMPUTE TOTAL: Para sa bawat candidate
+  function computeCandidateTotal(candidateId: string) {
+    let total = 0;
+    filteredCriteria.forEach((criterion) => {
+      const inputValue = scoreInputs[`${candidateId}-${criterion.id}`];
+      if (inputValue) {
+        const score = parseFloat(inputValue);
+        if (!isNaN(score)) {
+          total += (score / criterion.max_score) * criterion.percentage * 100;
+        }
+      }
+    });
+    return total.toFixed(2);
+  }
+
+  // ✅ SUBMIT ALL SCORES
+  async function submitAllScores() {
+    setLoading(true);
+    setSubmitSuccess(false);
+    try {
+      // ✅ DITO NAMIN IN-TYPE YUNG ENTRIES
+      const entries: any[] = [];
+      filteredCandidates.forEach((candidate) => {
+        filteredCriteria.forEach((criterion) => {
+          const inputValue = scoreInputs[`${candidate.id}-${criterion.id}`];
+          if (inputValue) {
+            entries.push({
+              judge_id: user.id,
+              candidate_id: candidate.id,
+              criteria_id: criterion.id,
+              score: parseFloat(inputValue),
+            });
+          }
+        });
+      });
+      const { error } = await supabase
+        .from("scores")
+        .upsert(entries, { onConflict: 'judge_id,candidate_id,criteria_id' });
+      if (error) {
+        setMessage(error.message);
+        setMessageType("error");
+        return;
+      }
       setSubmitSuccess(true);
-      setTimeout(() => setSubmitSuccess(false), 2000);
+      setLoading(false);
+      setTimeout(() => setSubmitSuccess(false), 3000);
+    } catch (error) {
+      setMessage("Something went wrong. Please try again.");
+      setMessageType("error");
+      setLoading(false);
     }
   }
 
@@ -128,7 +173,7 @@ export default function JudgePage() {
         {/* Submit Success Message */}
         {submitSuccess && (
           <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg mb-6">
-            ✅ Score submitted successfully!
+            ✅ Tama na! Lahat ng scores ay na-submit na!
           </div>
         )}
 
@@ -178,48 +223,48 @@ export default function JudgePage() {
                       <span className="text-xs">({criterion.percentage * 100}%)</span>
                     </th>
                   ))}
+                  <th className="px-4 py-2 text-center">Total</th>
                 </tr>
               </thead>
               <tbody>
                 {filteredCandidates.map((candidate) => (
                   <tr key={candidate.id} className="border-b">
                     <td className="px-4 py-3">
-                      {/* ✅ NUMBER LANG ANG MAKIKITA, HINDI PANGALAN */}
-                      <div className="flex items-center gap-3">
-                        <span className="font-bold">#{candidate.number}</span>
-                        <div>
-                          <p className="text-xs text-gray-600">{candidate.section}</p>
-                        </div>
-                      </div>
+                      {/* ✅ NUMBER LANG ANG MAKIKITA, HINDI GRADE LEVEL */}
+                      <span className="font-bold">#{candidate.number}</span>
                     </td>
                     {filteredCriteria.map((criterion) => (
                       <td key={criterion.id} className="px-4 py-3 text-center">
                         <input
                           type="number"
                           min="0"
-                          max={criterion.max_score}
-                          defaultValue={
-                            scores.find(
-                              (s) =>
-                                s.candidate_id === candidate.id &&
-                                s.criteria_id === criterion.id &&
-                                s.judge_id === user?.id
-                            )?.score || ""
-                          }
-                          onChange={(e) => {
-                            const value = parseFloat(e.target.value);
-                            if (value >= 0 && value <= criterion.max_score) {
-                              submitScore(candidate.id, criterion.id, value);
-                            }
-                          }}
+                          max="10"
+                          value={scoreInputs[`${candidate.id}-${criterion.id}`] || ""}
+                          onChange={(e) => handleScoreChange(candidate.id, criterion.id, e.target.value)}
                           className="w-20 px-2 py-1 border rounded text-center"
                         />
                       </td>
                     ))}
+                    <td className="px-4 py-3 text-center">
+                      <div className="font-bold text-purple-600 text-lg">
+                        {computeCandidateTotal(candidate.id)}
+                      </div>
+                    </td>
                   </tr>
                 ))}
               </tbody>
             </table>
+          </div>
+
+          {/* ✅ SUBMIT BUTTON */}
+          <div className="mt-6 text-center">
+            <button
+              onClick={submitAllScores}
+              disabled={loading}
+              className="w-full rounded-lg bg-blue-600 px-6 py-3 font-semibold text-white transition hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {loading ? "Loading..." : "Submit All Scores"}
+            </button>
           </div>
         </div>
       </div>
