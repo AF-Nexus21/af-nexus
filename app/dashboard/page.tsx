@@ -8,6 +8,7 @@ import { supabase } from "@/lib/supabase";
 export default function Dashboard() {
   const router = useRouter();
   const [userName, setUserName] = useState("");
+  const [role, setRole] = useState("");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -20,21 +21,22 @@ export default function Dashboard() {
         return;
       }
 
-      // ✅ Kunin natin yung first_name mula sa profiles table
+      // ✅ Kunin natin yung FIRST_NAME at LAST_NAME at ROLE mula sa profiles table
       const { data: profile } = await supabase
         .from("profiles")
-        .select("first_name, role")
+        .select("first_name, last_name, role")
         .eq("id", user.id)
         .maybeSingle();
 
       if (profile?.first_name) {
-        setUserName(profile.first_name);
+        setUserName(profile.first_name + (profile.last_name ? " " + profile.last_name : ""));
+      } else {
+        // Kung wala pang first_name, gamitin yung email
+        setUserName(user.email || "User");
       }
 
-      // ✅ KUNG ADMIN, IREDIRECT SA ADMIN DASHBOARD
-      if (profile?.role === "admin") {
-        router.push("/intrams/admin/dashboard");
-        return;
+      if (profile?.role) {
+        setRole(profile.role);
       }
 
       setLoading(false);
