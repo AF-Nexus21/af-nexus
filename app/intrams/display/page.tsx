@@ -155,7 +155,7 @@ export default function DisplayPage() {
                         <img
                           src={candidate.photo_url || "/default-avatar.png"}
                           alt={candidate.name}
-                          className="h-24 w-16 object-cover" // 2:3 ratio (Height 24, Width 16)
+                          className="h-24 w-16 object-cover"
                         />
                         <span>{candidate.name}</span>
                       </div>
