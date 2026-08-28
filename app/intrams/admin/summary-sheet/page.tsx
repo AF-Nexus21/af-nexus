@@ -129,6 +129,17 @@ export default function SummarySheetPage() {
     setIsProfileModalOpen(true);
   }
 
+  // ✅ ASSIGN MAJOR AWARD TITLES BASE SA RANK
+  function getMajorAwardTitle(rank: number, gender: string) {
+    if (rank === 1) return gender === "female" ? "Miss Intrams 2026" : "Mr. Intrams 2026";
+    if (rank === 2) return "1st Runner Up";
+    if (rank === 3) return "2nd Runner Up";
+    if (rank === 4) return "3rd Runner Up";
+    if (rank === 5) return "4th Runner Up";
+    if (rank === 6) return "5th Runner Up";
+    return "";
+  }
+
   return (
     <main className="min-h-screen bg-gray-100">
       <div className="mx-auto max-w-6xl px-4 py-8">
@@ -229,7 +240,7 @@ export default function SummarySheetPage() {
                     <td className="px-4 py-2">{candidate.number}</td>
                     <td className="px-4 py-2">
                       <button
-                        onClick={() => openProfileModal(candidate, "Overall Winner")}
+                        onClick={() => openProfileModal(candidate, getMajorAwardTitle(index + 1, gender))}
                         className="flex items-center gap-3 hover:opacity-80 transition"
                       >
                         <img
@@ -245,7 +256,7 @@ export default function SummarySheetPage() {
                     <td className="px-4 py-2">{computeSegmentScore(candidate, "Q&A")}</td>
                     <td className="px-4 py-2">{candidate.overallScore}</td>
                     <td className="px-4 py-2">{index + 1}</td>
-                    <td className="px-4 py-2">{index === 0 ? (gender === "female" ? "Miss Intrams 2026" : "Mr. Intrams 2026") : ""}</td>
+                    <td className="px-4 py-2">{getMajorAwardTitle(index + 1, gender)}</td>
                   </tr>
                 ))}
               </tbody>
