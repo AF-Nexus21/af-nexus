@@ -32,7 +32,12 @@ export default function JudgeLoginPage() {
           .eq('id', data.user.id)
           .single();
 
-        if (profile?.role === 'judge' || profile?.role === 'admin') {
+        if (profile?.role === 'admin') {
+          // ✅ I-REDIRECT ANG ADMIN SA ADMIN DASHBOARD
+          router.push("/intrams/admin/dashboard");
+          router.refresh();
+        } else if (profile?.role === 'judge') {
+          // ✅ I-REDIRECT ANG JUDGE SA JUDGE PORTAL
           router.push("/intrams/judge");
           router.refresh();
         } else {
