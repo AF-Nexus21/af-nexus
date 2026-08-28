@@ -20,6 +20,16 @@ export default function JudgePage() {
   const [messageType, setMessageType] = useState<"error" | "success" | "">("");
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState<boolean>(false);
   const [isCategoryDoneModalOpen, setIsCategoryDoneModalOpen] = useState<boolean>(false);
+  const [categoryDone, setCategoryDone] = useState<Record<string, boolean>>({
+    "female-sport-attire": false,
+    "female-production-number": false,
+    "female-ramp-modelling": false,
+    "female-qa": false,
+    "male-sport-attire": false,
+    "male-production-number": false,
+    "male-ramp-modelling": false,
+    "male-qa": false,
+  });
 
   useEffect(() => {
     // ✅ CHECK: Kailangan ba talaga ng judge na naka-login?
@@ -148,11 +158,17 @@ export default function JudgePage() {
       }
       setSubmitSuccess(true);
       setLoading(false);
-      // ✅ I-OPEN YUNG CATEGORY DONE MODAL
-      setIsCategoryDoneModalOpen(true);
+      // ✅ I-CHECK YUNG CATEGORY SA TRACKER
+      const categoryKey = `${gender}-${segment.toLowerCase().replace(/ /g, "-")}`;
+      setCategoryDone({
+        ...categoryDone,
+        [categoryKey]: true,
+      });
+      // ✅ I-OPEN YUNG SUCCESS MODAL
+      setIsSuccessModalOpen(true);
       setTimeout(() => {
-        setIsCategoryDoneModalOpen(false);
-      }, 3000); // 3 seconds awtomatikong magsasara
+        setIsSuccessModalOpen(false);
+      }, 2500); // 2.5 seconds awtomatikong magsasara
       
       // ✅ I-CLEAR YUNG SCORE INPUTS PARA SA SUSUNOD NA CATEGORY
       setScoreInputs({});
@@ -199,9 +215,9 @@ export default function JudgePage() {
           </div>
         </div>
 
-        {/* ✅ CATEGORY PROGRESS TRACKER */}
+        {/* ✅ CATEGORY CHECKBOX TRACKER */}
         <div className="bg-white rounded-lg shadow-md p-4 mb-6">
-          <div className="flex items-center justify-between flex-wrap gap-4">
+          <div className="flex gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700">Gender</label>
               <select
@@ -229,9 +245,9 @@ export default function JudgePage() {
           </div>
         </div>
 
-        {/* ✅ PROGRESS INDICATOR */}
+        {/* ✅ CHECKBOX INDICATOR */}
         <div className="bg-white rounded-lg shadow-md p-4 mb-6">
-          <div className="flex items-center gap-6">
+          <div className="flex items-center gap-4">
             <div className="flex-1">
               <p className="text-sm font-semibold text-gray-600">Napiling Category:</p>
               <p className="text-lg font-bold text-blue-700">
@@ -239,16 +255,19 @@ export default function JudgePage() {
               </p>
             </div>
             <div className="flex-1">
-              <p className="text-sm font-semibold text-gray-600">Susunod na Category:</p>
-              <p className="text-lg font-bold text-purple-700">
-                {gender === "female" ? "Male" : "Female"} - {segment}
-              </p>
-            </div>
-            <div className="flex-1">
               <p className="text-sm font-semibold text-gray-600">Natapos na Category:</p>
-              <p className="text-lg font-bold text-green-700">
-                {gender === "female" ? "Female" : "Male"} - Sport Attire
-              </p>
+              <div className="flex flex-wrap gap-2 mt-1">
+                {Object.entries(categoryDone).map(([key, done]) => (
+                  <span
+                    key={key}
+                    className={`px-2 py-1 text-xs font-semibold rounded-full ${
+                      done ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"
+                    }`}
+                  >
+                    {done ? "✓" : "•"} {key.split("-")[0]} - {key.split("-")[1]}
+                  </span>
+                ))}
+              </div>
             </div>
           </div>
         </div>
