@@ -67,16 +67,16 @@ export default function Dashboard() {
             Projects
           </p>
           
+          <Link href="/intrams" className="flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-gray-100 text-gray-700">
+            <span>🏆</span> INTRAMS 2026
+          </Link>
+          
           <Link href="/projects/nexuspass" className="flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-gray-100 text-gray-700">
             <span>🪪</span> NEXUSPASS
           </Link>
           
           <Link href="/projects/likha" className="flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-gray-100 text-gray-700">
             <span>📚</span> PROJECT LIKHA
-          </Link>
-          
-          <Link href="/projects/intrams" className="flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-gray-100 text-gray-700">
-            <span>🏆</span> INTRAMS 2026
           </Link>
         </nav>
 
@@ -115,6 +115,18 @@ export default function Dashboard() {
 
         {/* Cards para sa mga Projects */}
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {/* INTRAMS 2026 Card */}
+          <Link href="/intrams" className="group bg-white rounded-xl shadow-sm hover:shadow-lg transition p-6 border border-gray-100">
+            <div className="h-12 w-12 rounded-lg bg-orange-600 text-white flex items-center justify-center text-2xl mb-4">
+              🏆
+            </div>
+            <h2 className="text-xl font-bold text-gray-900 group-hover:text-orange-600">INTRAMS 2026</h2>
+            <p className="text-sm font-semibold text-orange-600 mt-1">Active Project</p>
+            <p className="mt-3 text-sm text-gray-600">
+              Online Tabulation System. Real-time scoring, judge portals, at live leaderboard.
+            </p>
+          </Link>
+
           {/* NEXUSPASS Card */}
           <Link href="/projects/nexuspass" className="group bg-white rounded-xl shadow-sm hover:shadow-lg transition p-6 border border-gray-100">
             <div className="h-12 w-12 rounded-lg bg-blue-600 text-white flex items-center justify-center text-2xl mb-4">
@@ -136,18 +148,6 @@ export default function Dashboard() {
             <p className="text-sm font-semibold text-green-600 mt-1">Coming Soon</p>
             <p className="mt-3 text-sm text-gray-600">
               Integrated Learner Information and Assessment Management System (SF1, SF2, SF9, SF10, at TOS).
-            </p>
-          </Link>
-
-          {/* INTRAMS 2026 Card */}
-          <Link href="/projects/intrams" className="group bg-white rounded-xl shadow-sm hover:shadow-lg transition p-6 border border-gray-100">
-            <div className="h-12 w-12 rounded-lg bg-orange-600 text-white flex items-center justify-center text-2xl mb-4">
-              🏆
-            </div>
-            <h2 className="text-xl font-bold text-gray-900 group-hover:text-orange-600">INTRAMS 2026</h2>
-            <p className="text-sm font-semibold text-orange-600 mt-1">Active Project</p>
-            <p className="mt-3 text-sm text-gray-600">
-              Online Tabulation System. Real-time scoring, judge portals, at live leaderboard.
             </p>
           </Link>
         </div>
