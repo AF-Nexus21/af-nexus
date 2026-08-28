@@ -25,20 +25,20 @@ export default function JudgeLoginPage() {
       if (error) throw error;
 
       if (data.user) {
-        // Check if user is judge
+        // Check if user is judge OR admin
         const { data: profile } = await supabase
           .from('profiles')
           .select('role')
           .eq('id', data.user.id)
           .single();
 
-        if (profile?.role !== 'judge') {
+        if (profile?.role === 'judge' || profile?.role === 'admin') {
+          router.push("/intrams/judge");
+          router.refresh();
+        } else {
           await supabase.auth.signOut();
           throw new Error("You are not authorized to access the judge portal");
         }
-
-        router.push("/intrams/judge");
-        router.refresh();
       }
     } catch (err) {
       if (err instanceof Error) {

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link"; // ✅ I-IMPORT MO ITO
+import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 
 export default function AdminPanel() {
@@ -12,7 +12,6 @@ export default function AdminPanel() {
   const [criteria, setCriteria] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // ✅ Check kung admin
   useEffect(() => {
     async function checkAdmin() {
       const { data: { user } } = await supabase.auth.getUser();
@@ -121,6 +120,20 @@ export default function AdminPanel() {
               className="inline-block rounded-lg bg-green-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-green-700"
             >
               Go to View Scores
+            </Link>
+          </div>
+
+          {/* Edit Criteria */}
+          <div className="bg-white rounded-lg shadow-md p-6">
+            <h2 className="text-xl font-semibold mb-4">📝 Edit Criteria</h2>
+            <p className="text-sm text-gray-600 mb-4">
+              Manage all scoring criteria for the pageant.
+            </p>
+            <Link
+              href="/intrams/admin/edit-criteria"
+              className="inline-block rounded-lg bg-orange-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-orange-700"
+            >
+              Go to Edit Criteria
             </Link>
           </div>
         </div>

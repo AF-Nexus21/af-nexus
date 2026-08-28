@@ -12,6 +12,8 @@ export default function JudgePage() {
   const [scores, setScores] = useState<any[]>([]);
   const [user, setUser] = useState<any>(null);
   const [submitSuccess, setSubmitSuccess] = useState<boolean>(false);
+  const [gender, setGender] = useState<string>("female");
+  const [segment, setSegment] = useState<string>("Sport Attire");
 
   useEffect(() => {
     // Check if user is logged in
@@ -75,6 +77,14 @@ export default function JudgePage() {
     router.push("/intrams/judge/login");
   }
 
+  // Filter criteria based on gender and segment
+  const filteredCriteria = criteria.filter(
+    (c) => c.gender === gender || c.gender === null || c.gender === ""
+  );
+
+  // Filter candidates based on gender
+  const filteredCandidates = candidates.filter((c) => c.gender === gender);
+
   return (
     <main className="min-h-screen bg-gray-100">
       <div className="mx-auto max-w-6xl px-4 py-8">
@@ -103,6 +113,36 @@ export default function JudgePage() {
           </div>
         )}
 
+        {/* Segment and Gender Selectors */}
+        <div className="bg-white rounded-lg shadow-md p-4 mb-6">
+          <div className="flex gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Gender</label>
+              <select
+                value={gender}
+                onChange={(e) => setGender(e.target.value)}
+                className="mt-1 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                <option value="female">Female</option>
+                <option value="male">Male</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Segment</label>
+              <select
+                value={segment}
+                onChange={(e) => setSegment(e.target.value)}
+                className="mt-1 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                <option value="Sport Attire">Sport Attire</option>
+                <option value="Production Number">Production Number</option>
+                <option value="Ramp Modelling">Ramp Modelling</option>
+                <option value="Q&A">Q&A</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
         {/* Ballot Form */}
         <div className="bg-white rounded-lg shadow-md p-6">
           <h2 className="text-xl font-semibold mb-6">📝 Score Sheet</h2>
@@ -112,7 +152,7 @@ export default function JudgePage() {
               <thead>
                 <tr className="bg-blue-600 text-white">
                   <th className="px-4 py-2 text-left">Candidate</th>
-                  {criteria.map((criterion) => (
+                  {filteredCriteria.map((criterion) => (
                     <th key={criterion.id} className="px-4 py-2 text-center">
                       {criterion.name}
                       <br />
@@ -122,7 +162,7 @@ export default function JudgePage() {
                 </tr>
               </thead>
               <tbody>
-                {candidates.map((candidate) => (
+                {filteredCandidates.map((candidate) => (
                   <tr key={candidate.id} className="border-b">
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-3">
@@ -133,7 +173,7 @@ export default function JudgePage() {
                         </div>
                       </div>
                     </td>
-                    {criteria.map((criterion) => (
+                    {filteredCriteria.map((criterion) => (
                       <td key={criterion.id} className="px-4 py-3 text-center">
                         <input
                           type="number"
