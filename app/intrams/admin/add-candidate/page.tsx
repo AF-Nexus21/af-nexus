@@ -27,6 +27,14 @@ export default function AddCandidatePage() {
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
+      
+      // ✅ VALIDATE FILE SIZE (2MB LIMIT)
+      if (file.size > 2 * 1024 * 1024) {
+        setMessage("Photo file size must be less than 2MB.");
+        setMessageType("error");
+        return;
+      }
+      
       setPhotoFile(file);
       const reader = new FileReader();
       reader.onload = () => setPhotoPreview(reader.result as string);
