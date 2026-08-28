@@ -7,8 +7,8 @@ export default function DisplayPage() {
   const [candidates, setCandidates] = useState<any[]>([]);
   const [criteria, setCriteria] = useState<any[]>([]);
   const [scores, setScores] = useState<any[]>([]);
-  const [winningCandidate, setWinningCandidate] = useState<any>(null);
-  const [showResults, setShowResults] = useState<boolean>(false);
+  const [gender, setGender] = useState<string>("female");
+  const [segment, setSegment] = useState<string>("Sport Attire");
 
   useEffect(() => {
     fetchCandidates();
@@ -62,13 +62,21 @@ export default function DisplayPage() {
     setScores(data || []);
   }
 
+  // Filter criteria based on gender and segment
+  const filteredCriteria = criteria.filter(
+    (c) => c.gender === gender || c.gender === null || c.gender === ""
+  );
+
+  // Filter candidates based on gender
+  const filteredCandidates = candidates.filter((c) => c.gender === gender);
+
   // Compute tabulation
   function computeTabulation() {
-    const results = candidates.map((candidate) => {
+    const results = filteredCandidates.map((candidate) => {
       const candidateScores = scores.filter((s) => s.candidate_id === candidate.id);
       let totalScore = 0;
 
-      criteria.forEach((criterion) => {
+      filteredCriteria.forEach((criterion) => {
         const criterionScores = candidateScores.filter((s) => s.criteria_id === criterion.id);
         if (criterionScores.length > 0) {
           const avg = criterionScores.reduce((sum, s) => sum + s.score, 0) / criterionScores.length;
@@ -87,14 +95,6 @@ export default function DisplayPage() {
 
   const tabulation = computeTabulation();
 
-  // Separate rankings for Male and Female
-  const maleRankings = tabulation.filter((c) => c.gender === "male");
-  const femaleRankings = tabulation.filter((c) => c.gender === "female");
-
-  // Winners
-  const mrWinner = maleRankings[0];
-  const missWinner = femaleRankings[0];
-
   return (
     <main className="min-h-screen bg-gradient-to-br from-purple-600 to-blue-600">
       <div className="mx-auto max-w-7xl px-4 py-12">
@@ -103,81 +103,60 @@ export default function DisplayPage() {
           <p className="mt-2 text-lg text-purple-100">Live Tabulation</p>
         </div>
 
-        {/* Winners Banner */}
-        <div className="mt-8 bg-white rounded-2xl shadow-2xl p-8">
-          <h2 className="text-2xl font-bold text-gray-900 text-center mb-6">🏆 Winners</h2>
-          <div className="grid grid-cols-2 gap-8">
-            <div className="text-center">
-              <p className="text-sm font-bold text-blue-600 uppercase">Mr. Intrams</p>
-              <p className="mt-2 text-2xl font-bold text-gray-900">{mrWinner?.name || "TBD"}</p>
-              <p className="text-gray-600">{mrWinner?.section || ""}</p>
-              <p className="mt-2 text-xl font-bold text-blue-600">{mrWinner?.totalScore || "0.00"}</p>
-            </div>
-            <div className="text-center">
-              <p className="text-sm font-bold text-pink-600 uppercase">Miss Intrams</p>
-              <p className="mt-2 text-2xl font-bold text-gray-900">{missWinner?.name || "TBD"}</p>
-              <p className="text-gray-600">{missWinner?.section || ""}</p>
-              <p className="mt-2 text-xl font-bold text-pink-600">{missWinner?.totalScore || "0.00"}</p>
-            </div>
+        {/* Segment and Gender Selectors */}
+        <div className="mt-8 bg-white/20 backdrop-blur-sm rounded-xl p-4 flex gap-4">
+          <div>
+            <label className="block text-sm font-medium text-white">Gender</label>
+            <select
+              value={gender}
+              onChange={(e) => setGender(e.target.value)}
+              className="mt-1 w-full px-4 py-2 border border-white/30 rounded-lg bg-white/20 text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+            >
+              <option value="female">Female</option>
+              <option value="male">Male</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-white">Segment</label>
+            <select
+              value={segment}
+              onChange={(e) => setSegment(e.target.value)}
+              className="mt-1 w-full px-4 py-2 border border-white/30 rounded-lg bg-white/20 text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+            >
+              <option value="Sport Attire">Sport Attire</option>
+              <option value="Production Number">Production Number</option>
+              <option value="Ramp Modelling">Ramp Modelling</option>
+              <option value="Q&A">Q&A</option>
+            </select>
           </div>
         </div>
 
         {/* Rankings */}
-        <div className="mt-8 grid grid-cols-2 gap-8">
-          <div className="bg-white rounded-2xl shadow-2xl p-6">
-            <h2 className="text-xl font-bold text-blue-600 mb-4">👔 Mr. Intrams</h2>
-            <div className="overflow-x-auto">
-              <table className="min-w-full">
-                <thead>
-                  <tr className="bg-blue-600 text-white">
-                    <th className="px-4 py-2">Rank</th>
-                    <th className="px-4 py-2">#</th>
-                    <th className="px-4 py-2">Name</th>
-                    <th className="px-4 py-2">Section</th>
-                    <th className="px-4 py-2">Total Score</th>
+        <div className="mt-8 bg-white rounded-2xl shadow-2xl p-6">
+          <h2 className="text-xl font-bold text-gray-900 mb-4">🏆 Rankings</h2>
+          <div className="overflow-x-auto">
+            <table className="min-w-full">
+              <thead>
+                <tr className="bg-purple-600 text-white">
+                  <th className="px-4 py-2">Rank</th>
+                  <th className="px-4 py-2">#</th>
+                  <th className="px-4 py-2">Name</th>
+                  <th className="px-4 py-2">Section</th>
+                  <th className="px-4 py-2">Total Score</th>
+                </tr>
+              </thead>
+              <tbody>
+                {tabulation.map((candidate, index) => (
+                  <tr key={candidate.id} className={index === 0 ? "bg-yellow-100" : ""}>
+                    <td className="px-4 py-2 font-bold">{index + 1}</td>
+                    <td className="px-4 py-2">{candidate.number}</td>
+                    <td className="px-4 py-2">{candidate.name}</td>
+                    <td className="px-4 py-2">{candidate.section}</td>
+                    <td className="px-4 py-2 font-bold">{candidate.totalScore}</td>
                   </tr>
-                </thead>
-                <tbody>
-                  {maleRankings.map((candidate, index) => (
-                    <tr key={candidate.id} className={index === 0 ? "bg-yellow-100" : ""}>
-                      <td className="px-4 py-2 font-bold">{index + 1}</td>
-                      <td className="px-4 py-2">{candidate.number}</td>
-                      <td className="px-4 py-2">{candidate.name}</td>
-                      <td className="px-4 py-2">{candidate.section}</td>
-                      <td className="px-4 py-2 font-bold">{candidate.totalScore}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-2xl shadow-2xl p-6">
-            <h2 className="text-xl font-bold text-pink-600 mb-4">👗 Miss Intrams</h2>
-            <div className="overflow-x-auto">
-              <table className="min-w-full">
-                <thead>
-                  <tr className="bg-pink-600 text-white">
-                    <th className="px-4 py-2">Rank</th>
-                    <th className="px-4 py-2">#</th>
-                    <th className="px-4 py-2">Name</th>
-                    <th className="px-4 py-2">Section</th>
-                    <th className="px-4 py-2">Total Score</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {femaleRankings.map((candidate, index) => (
-                    <tr key={candidate.id} className={index === 0 ? "bg-yellow-100" : ""}>
-                      <td className="px-4 py-2 font-bold">{index + 1}</td>
-                      <td className="px-4 py-2">{candidate.number}</td>
-                      <td className="px-4 py-2">{candidate.name}</td>
-                      <td className="px-4 py-2">{candidate.section}</td>
-                      <td className="px-4 py-2 font-bold">{candidate.totalScore}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
       </div>

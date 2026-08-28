@@ -19,17 +19,40 @@ export default function JudgeRegisterPage() {
     setError("");
 
     try {
-      // Validate passwords match
-      if (password !== confirmPassword) {
-        throw new Error("Passwords do not match");
+      // ============================================
+      // ✅ STRICT VALIDATION BAGO PUMASOK SA SUPABASE
+      // ============================================
+      if (!name.trim()) {
+        throw new Error("Name is required.");
       }
 
-      // Validate password length
+      if (!email.trim()) {
+        throw new Error("Email is required.");
+      }
+
+      if (!email.includes("@")) {
+        throw new Error("Email must be a valid email address.");
+      }
+
+      if (!password) {
+        throw new Error("Password is required.");
+      }
+
       if (password.length < 6) {
         throw new Error("Password must be at least 6 characters");
       }
 
-      // Create user sa Supabase Auth
+      if (!confirmPassword) {
+        throw new Error("Confirm Password is required.");
+      }
+
+      if (password !== confirmPassword) {
+        throw new Error("Passwords do not match.");
+      }
+
+      // ============================================
+      // ✅ PAGKATAPOS NG VALIDATION, DITO NA TAYO PUMASOK SA SUPABASE
+      // ============================================
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -43,22 +66,40 @@ export default function JudgeRegisterPage() {
 
       if (error) throw error;
 
-      // Insert sa profiles table na may judge role
       if (data.user) {
+        // ✅ Insert sa 'judges' table
+        const { error: judgesError } = await supabase
+          .from("judges")
+          .insert({
+            id: data.user.id,
+            name: name,
+            email: email,
+            judge_code: `JUDGE-${Date.now()}`,
+          });
+
+        if (judgesError) {
+          setError(`Judge record creation failed: ${judgesError.message}`);
+          return;
+        }
+
+        // ✅ Insert sa 'profiles' table
         const { error: profileError } = await supabase
-          .from('profiles')
-          .insert([
-            {
-              id: data.user.id,
-              role: 'judge',
-            },
-          ]);
+          .from("profiles")
+          .insert({
+            id: data.user.id,
+            role: 'judge',
+            email: email,
+            first_name: name,
+          });
 
-        if (profileError) throw profileError;
+        if (profileError) {
+          setError(`Profile creation failed: ${profileError.message}`);
+          return;
+        }
+
+        router.push("/intrams/judge/login");
+        router.refresh();
       }
-
-      router.push("/intrams/judge/login");
-      router.refresh();
     } catch (err) {
       if (err instanceof Error) {
         setError(err.message || "Registration failed");
