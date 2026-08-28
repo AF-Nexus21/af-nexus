@@ -19,17 +19,38 @@ export default function EditCriteriaPage() {
   const [gender, setGender] = useState("");
 
   useEffect(() => {
+    // ✅ MAHALAGA: Siguraduhing may supabase client
+    if (!supabase) {
+      setMessage("Supabase is not configured. Please check your environment variables.");
+      setLoading(false);
+      return;
+    }
+
     fetchCriteria();
   }, []);
 
   async function fetchCriteria() {
-    const { data } = await supabase
-      .from("criteria")
-      .select("*")
-      .order("segment")
-      .order("sort_order");
-    setCriteriaList(data || []);
-    setLoading(false);
+    try {
+      const { data, error } = await supabase
+        .from("criteria")
+        .select("*")
+        .order("segment")
+        .order("sort_order");
+
+      if (error) {
+        setMessage(error.message);
+        setMessageType("error");
+        setLoading(false);
+        return;
+      }
+
+      setCriteriaList(data || []);
+      setLoading(false);
+    } catch (error) {
+      setMessage("Something went wrong during fetch. Please try again.");
+      setMessageType("error");
+      setLoading(false);
+    }
   }
 
   // ✅ VALIDATION: Dapat kumpleto bago ma-click
