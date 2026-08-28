@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { supabase } from "@/lib/supabase";
+import { supabase, isSupabaseAvailable } from "@/lib/supabase";
 
 type Teacher = {
   profile_id?: string; 
@@ -51,9 +51,30 @@ export default function TeacherPage() {
   const frontCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const backCanvasRef = useRef<HTMLCanvasElement | null>(null);
 
+  // ✅ Check if Supabase is available
+  if (!isSupabaseAvailable || !supabase) {
+    return (
+      <main className="flex min-h-screen items-center justify-center bg-gray-200 px-4">
+        <div className="rounded-xl bg-white p-8 text-center shadow-lg">
+          <h2 className="text-xl font-bold text-red-600">⚠️ Supabase Not Configured</h2>
+          <p className="mt-3 text-sm text-gray-600">
+            Please check your environment variables. Contact support if this persists.
+          </p>
+        </div>
+      </main>
+    );
+  }
+
   useEffect(() => {
     async function loadTeacher() {
       try {
+        // ✅ Check muna kung available ang supabase
+        if (!supabase) {
+          console.error("Supabase is not configured");
+          setLoading(false);
+          return;
+        }
+
         const { data: { user }, error: authError } = await supabase.auth.getUser();
         if (authError || !user) {
           console.error("No logged-in user.");
@@ -325,8 +346,12 @@ export default function TeacherPage() {
     const middleInitial = middleName ? `${middleName.charAt(0).toUpperCase()}.` : "";
     const fullName = [firstName, middleInitial, lastName].filter(Boolean).join(" ").toUpperCase();
 
-    const { data: { user } } = await supabase.auth.getUser();
-    const email = clean(user?.email, "argie.fenis001@deped.gov.ph");
+    // ✅ SAFE: Check if supabase is available before using
+    let email = "argie.fenis001@deped.gov.ph";
+    if (supabase) {
+      const { data: { user } } = await supabase.auth.getUser();
+      email = clean(user?.email, "argie.fenis001@deped.gov.ph");
+    }
 
     const contact = clean(teacher.contact, "09605524683");
     const fbName = clean(teacher.fb_name, "RG Fenis");
@@ -376,6 +401,8 @@ export default function TeacherPage() {
   }
 
   async function markAsDownloaded() {
+    if (!supabase) return;
+    
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
@@ -402,6 +429,11 @@ export default function TeacherPage() {
   }
 
   async function submitFeedback() {
+    if (!supabase) {
+      alert("Supabase is not configured. Please contact support.");
+      return;
+    }
+
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
     if (!feedbackComment.trim()) {
@@ -522,6 +554,14 @@ export default function TeacherPage() {
     }
   }
 
+  // ✅ LOGOUT FUNCTION - With Supabase check
+  async function handleLogout() {
+    if (supabase) {
+      await supabase.auth.signOut();
+    }
+    window.location.href = "/login";
+  }
+
   if (loading) {
     return (
       <main className="flex min-h-screen items-center justify-center bg-gray-200">
@@ -579,10 +619,7 @@ export default function TeacherPage() {
             )}
 
             <button
-              onClick={async () => {
-                await supabase.auth.signOut();
-                window.location.href = "/login";
-              }}
+              onClick={handleLogout}
               className="rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white shadow transition hover:bg-red-700"
             >
               Logout
