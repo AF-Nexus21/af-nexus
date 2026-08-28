@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { FormEvent, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { supabase, isSupabaseAvailable, supabaseConfig } from "@/lib/supabase";
+import { supabase, isSupabaseAvailable } from "@/lib/supabase";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -18,9 +18,12 @@ export default function LoginPage() {
   // ✅ Check if we're on the client side
   useEffect(() => {
     setIsClient(true);
-    console.log('🔍 Supabase Config:', supabaseConfig);
-    console.log('✅ Supabase Available:', isSupabaseAvailable);
+    console.log('🔍 Supabase Available:', isSupabaseAvailable);
     console.log('📦 Supabase Instance:', supabase ? 'Available' : 'Not Available');
+    console.log('🔑 Environment Variables:', {
+      url: process.env.NEXT_PUBLIC_SUPABASE_URL ? '✅ Set' : '❌ Not Set',
+      anonKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ? '✅ Set' : '❌ Not Set',
+    });
   }, []);
 
   // ✅ Loading state
@@ -50,9 +53,9 @@ export default function LoginPage() {
           </p>
           <div className="mt-4 p-4 bg-gray-50 rounded-lg text-left text-xs">
             <p className="font-mono">
-              URL: {supabaseConfig.url}<br />
-              Anon Key: {supabaseConfig.anonKey}<br />
-              Service Key: {supabaseConfig.serviceKey}
+              URL: {process.env.NEXT_PUBLIC_SUPABASE_URL ? '✅ Set' : '❌ Not Set'}<br />
+              Anon Key: {process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ? '✅ Set' : '❌ Not Set'}<br />
+              Service Key: {process.env.SUPABASE_SERVICE_ROLE_KEY ? '✅ Set' : '❌ Not Set'}
             </p>
           </div>
           <Link
