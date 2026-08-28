@@ -218,6 +218,9 @@ export default function JudgePage() {
     "qa": "bg-green-100 text-green-700",
   };
 
+  // ✅ I-ARRANGE YUNG CATEGORY DONE PARA SA DISPLAY
+  const sortedCategoryDone = Object.entries(categoryDone).sort(([a], [b]) => a.localeCompare(b));
+
   return (
     <main className="min-h-screen bg-gray-100">
       <div className="mx-auto max-w-6xl px-4 py-8">
@@ -289,7 +292,7 @@ export default function JudgePage() {
             <div className="flex-1">
               <p className="text-sm font-semibold text-gray-600">Natapos na Category:</p>
               <div className="flex flex-wrap gap-2 mt-1">
-                {Object.entries(categoryDone).map(([key, done]) => (
+                {sortedCategoryDone.map(([key, done]) => (
                   <span
                     key={key}
                     className={`px-2 py-1 text-xs font-semibold rounded-full ${
@@ -410,7 +413,7 @@ export default function JudgePage() {
               <button
                 onClick={() => {
                   setIsCategoryDoneModalOpen(false);
-                  // ✅ I-STAY LANG SA FEMALE, MAG-NEXT SEGMENT NA LANG
+                  // ✅ I-SWITCH SEGMENT (HUWAG MAG-SWITCH NG GENDER)
                   setSegment((prev) => {
                     if (prev === "Sport Attire") return "Production Number";
                     if (prev === "Production Number") return "Ramp Modelling";
