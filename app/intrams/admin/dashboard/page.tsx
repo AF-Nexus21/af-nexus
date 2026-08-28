@@ -11,6 +11,8 @@ export default function AdminDashboard() {
   const [judges, setJudges] = useState<any[]>([]);
   const [criteria, setCriteria] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [message, setMessage] = useState<string | null>(null);
+  const [messageType, setMessageType] = useState<"error" | "success" | "">("");
 
   useEffect(() => {
     fetchData();
@@ -34,6 +36,68 @@ export default function AdminDashboard() {
     );
   }
 
+  // ✅ RESET SCORES FUNCTION
+  async function handleResetScores() {
+    const confirmReset = await window.confirm(
+      "Are you sure you want to reset ALL scores? This will delete all scores from all judges. This action cannot be undone."
+    );
+    if (!confirmReset) return;
+
+    setLoading(true);
+    setMessage(null);
+    setMessageType("");
+
+    try {
+      const { error } = await supabase.from("scores").delete().gt("id", "00000000-0000-0000-0000-000000000000");
+
+      if (error) {
+        setMessage(error.message);
+        setMessageType("error");
+        return;
+      }
+
+      setMessage("All scores have been reset successfully!");
+      setMessageType("success");
+      setLoading(false);
+      fetchData();
+    } catch (error) {
+      setMessage("Something went wrong. Please try again.");
+      setMessageType("error");
+      setLoading(false);
+    }
+  }
+
+  // ✅ RESET CRITERIA FUNCTION
+  async function handleResetCriteria() {
+    const confirmReset = await window.confirm(
+      "Are you sure you want to reset ALL criteria? This will delete all criteria and you will need to re-create them. This action cannot be undone."
+    );
+    if (!confirmReset) return;
+
+    setLoading(true);
+    setMessage(null);
+    setMessageType("");
+
+    try {
+      const { error } = await supabase.from("criteria").delete().gt("id", "00000000-0000-0000-0000-000000000000");
+
+      if (error) {
+        setMessage(error.message);
+        setMessageType("error");
+        return;
+      }
+
+      setMessage("All criteria have been reset successfully!");
+      setMessageType("success");
+      setLoading(false);
+      fetchData();
+    } catch (error) {
+      setMessage("Something went wrong. Please try again.");
+      setMessageType("error");
+      setLoading(false);
+    }
+  }
+
   return (
     <main className="min-h-screen bg-gray-100">
       <div className="mx-auto max-w-6xl px-4 py-8">
@@ -49,7 +113,7 @@ export default function AdminDashboard() {
             <button
               onClick={async () => {
                 await supabase.auth.signOut();
-                router.push("/login"); // ✅ TAMA NA ITO!
+                router.push("/login");
               }}
               className="bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-red-700"
             >
@@ -57,6 +121,21 @@ export default function AdminDashboard() {
             </button>
           </div>
         </div>
+
+        {/* ✅ MESSAGE */}
+        {message && (
+          <div
+            className={`mb-6 rounded-lg p-4 text-center text-sm ${
+              messageType === "error"
+                ? "bg-red-50 text-red-700 border border-red-200"
+                : messageType === "success"
+                ? "bg-green-50 text-green-700 border border-green-200"
+                : "bg-gray-100 text-gray-700"
+            }`}
+          >
+            {message}
+          </div>
+        )}
 
         {/* ===== ADMIN TOOLS ===== */}
         <div className="grid gap-6 md:grid-cols-3">
@@ -128,6 +207,36 @@ export default function AdminDashboard() {
             >
               Go to Summary Sheet
             </Link>
+          </div>
+
+          {/* Reset Scores */}
+          <div className="bg-white rounded-lg shadow-md p-6">
+            <h2 className="text-xl font-semibold mb-4">🔄 Reset Scores</h2>
+            <p className="text-sm text-gray-600 mb-4">
+              Reset all scores from all judges.
+            </p>
+            <button
+              onClick={handleResetScores}
+              disabled={loading}
+              className="inline-block rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Reset Scores
+            </button>
+          </div>
+
+          {/* Reset Criteria */}
+          <div className="bg-white rounded-lg shadow-md p-6">
+            <h2 className="text-xl font-semibold mb-4">🔄 Reset Criteria</h2>
+            <p className="text-sm text-gray-600 mb-4">
+              Reset all criteria for reuse in other events.
+            </p>
+            <button
+              onClick={handleResetCriteria}
+              disabled={loading}
+              className="inline-block rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Reset Criteria
+            </button>
           </div>
         </div>
 
