@@ -19,7 +19,6 @@ export default function EditCriteriaPage() {
   const [gender, setGender] = useState("");
 
   useEffect(() => {
-    // ✅ Diretso pasok na tayo, hindi na kailangan ng login check!
     fetchCriteria();
   }, []);
 
@@ -33,9 +32,16 @@ export default function EditCriteriaPage() {
     setLoading(false);
   }
 
+  // ✅ VALIDATION: Dapat kumpleto bago ma-click
+  const isFormComplete = 
+    name.trim() && 
+    segment && 
+    maxScore > 0 && 
+    percentage > 0;
+
   async function handleAddCriteria() {
-    if (!name.trim() || !segment.trim()) {
-      setMessage("Name and Segment are required.");
+    if (!isFormComplete) {
+      setMessage("Please fill out all required fields.");
       setMessageType("error");
       return;
     }
@@ -120,6 +126,12 @@ export default function EditCriteriaPage() {
   }
 
   async function handleDeleteCriteria(criteria: any) {
+    // ✅ Kumpirmahin bago burahin
+    const confirmDelete = await window.confirm(
+      `Are you sure you want to delete "${criteria.name}"? This will also delete all scores associated with this criteria.`
+    );
+    if (!confirmDelete) return;
+
     setLoading(true);
     setMessage(null);
     setMessageType("");
@@ -181,7 +193,6 @@ export default function EditCriteriaPage() {
                 onChange={(e) => setName(e.target.value)}
                 className="mt-1 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="e.g., Sportsmanship & Creativity"
-                required
               />
             </div>
             <div>
@@ -200,7 +211,6 @@ export default function EditCriteriaPage() {
                 value={segment}
                 onChange={(e) => setSegment(e.target.value)}
                 className="mt-1 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                required
               >
                 <option value="">-- Select Segment --</option>
                 <option value="Sport Attire">Sport Attire</option>
@@ -254,9 +264,10 @@ export default function EditCriteriaPage() {
             </div>
           </div>
 
+          {/* ✅ BUTTON AY NAKA-DISABLE KAPAG HINDI KOMPLETO */}
           <button
             onClick={handleAddCriteria}
-            disabled={loading}
+            disabled={!isFormComplete || loading}
             className="mt-4 w-full rounded-lg bg-blue-600 px-6 py-3 font-semibold text-white transition hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? "Loading..." : "Add Criteria"}
