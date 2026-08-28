@@ -18,12 +18,12 @@ export default function LoginPage() {
   // ✅ Check if we're on the client side
   useEffect(() => {
     setIsClient(true);
-    console.log('Supabase Config:', supabaseConfig);
-    console.log('Supabase Available:', isSupabaseAvailable);
-    console.log('Supabase Instance:', supabase);
+    console.log('🔍 Supabase Config:', supabaseConfig);
+    console.log('✅ Supabase Available:', isSupabaseAvailable);
+    console.log('📦 Supabase Instance:', supabase ? 'Available' : 'Not Available');
   }, []);
 
-  // ✅ Check if Supabase is available (client-side only)
+  // ✅ Loading state
   if (!isClient) {
     return (
       <main className="flex min-h-screen items-center justify-center bg-gray-100 px-4">
@@ -38,6 +38,7 @@ export default function LoginPage() {
     );
   }
 
+  // ✅ Check Supabase availability
   if (!isSupabaseAvailable || !supabase) {
     return (
       <main className="flex min-h-screen items-center justify-center bg-gray-100 px-4">
@@ -106,7 +107,6 @@ export default function LoginPage() {
     }
 
     try {
-      // ✅ Check again if supabase is available
       if (!supabase) {
         setMessage("Supabase is not configured. Please try again later.");
         setMessageType("error");
@@ -121,6 +121,7 @@ export default function LoginPage() {
         });
 
       if (loginError) {
+        console.error("Login error:", loginError);
         setMessage("Invalid email or password. Please try again.");
         setMessageType("error");
         setLoading(false);
@@ -136,7 +137,6 @@ export default function LoginPage() {
         return;
       }
 
-      // ✅ Check supabase again before using
       if (!supabase) {
         setMessage("Supabase connection lost. Please try again.");
         setMessageType("error");
@@ -223,6 +223,7 @@ export default function LoginPage() {
               placeholder="you@example.com"
               required
               disabled={loading}
+              autoComplete="email"
               className="mt-2 w-full rounded-lg border border-gray-300 px-4 py-3 outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-200 transition disabled:bg-gray-100 disabled:cursor-not-allowed"
             />
           </div>
@@ -239,6 +240,7 @@ export default function LoginPage() {
               placeholder="Enter your password"
               required
               disabled={loading}
+              autoComplete="current-password"
               className="mt-2 w-full rounded-lg border border-gray-300 px-4 py-3 outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-200 transition disabled:bg-gray-100 disabled:cursor-not-allowed"
             />
           </div>
