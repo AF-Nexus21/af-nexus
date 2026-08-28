@@ -231,12 +231,12 @@ export default function JudgePage() {
           </div>
         </div>
 
-        {/* ✅ BUONG PANGALAN NG JUDGE (CAPS LOCK) */}
+        {/* ✅ BUONG PANGALAN NG JUDGE (CAPS LOCK) - SWAPPED POSITION */}
         <div className="mb-8 bg-gradient-to-r from-purple-600 to-blue-600 rounded-xl p-6 text-center">
-          <p className="text-sm font-semibold text-purple-200">JUDGE</p>
-          <h2 className="mt-1 text-3xl font-bold text-white uppercase">
+          <h2 className="text-3xl font-bold text-white uppercase">
             {judgeName || "Judge"}
           </h2>
+          <p className="mt-1 text-sm font-semibold text-purple-200">JUDGE</p>
         </div>
 
         {/* ✅ CATEGORY CHECKBOX TRACKER */}
