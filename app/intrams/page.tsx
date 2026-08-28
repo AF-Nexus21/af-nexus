@@ -1,71 +1,211 @@
 "use client";
 
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { supabase } from "@/lib/supabase";
 
-export default function IntramsPage() {
+export default function JudgePage() {
+  const router = useRouter();
+  const [candidates, setCandidates] = useState<any[]>([]);
+  const [criteria, setCriteria] = useState<any[]>([]);
+  const [scores, setScores] = useState<any[]>([]);
+  const [user, setUser] = useState<any>(null);
+  const [submitSuccess, setSubmitSuccess] = useState<boolean>(false);
+  const [gender, setGender] = useState<string>("female");
+  const [segment, setSegment] = useState<string>("Sport Attire");
+
+  useEffect(() => {
+    // ✅ Check kung may naka-login na user
+    supabase.auth.getUser().then(({ data }) => {
+      if (!data.user) {
+        router.push("/intrams/judge/login");
+        return;
+      }
+      setUser(data.user);
+    });
+
+    // ✅ Diretso pasok ang admin (hindi na kailangan ng login)
+    if (!user) {
+      // fetch na agad
+    }
+
+    fetchCandidates();
+    fetchCriteria();
+    fetchScores();
+  }, [router]);
+
+  async function fetchCandidates() {
+    const { data } = await supabase
+      .from("candidates")
+      .select("*")
+      .order("number");
+    setCandidates(data || []);
+  }
+
+  async function fetchCriteria() {
+    const { data } = await supabase
+      .from("criteria")
+      .select("*")
+      .order("sort_order");
+    setCriteria(data || []);
+  }
+
+  async function fetchScores() {
+    const { data } = await supabase
+      .from("scores")
+      .select("*");
+    setScores(data || []);
+  }
+
+  async function submitScore(candidateId: string, criteriaId: string, score: number) {
+    const { error } = await supabase
+      .from("scores")
+      .upsert(
+        {
+          judge_id: user.id,
+          candidate_id: candidateId,
+          criteria_id: criteriaId,
+          score: score,
+        },
+        { onConflict: 'judge_id,candidate_id,criteria_id' }
+      );
+
+    if (!error) {
+      setSubmitSuccess(true);
+      setTimeout(() => setSubmitSuccess(false), 2000);
+    }
+  }
+
+  async function handleLogout() {
+    await supabase.auth.signOut();
+    router.push("/intrams/judge/login");
+  }
+
+  // ✅ Filter criteria based on gender and segment
+  const filteredCriteria = criteria.filter(
+    (c) => c.gender === gender || c.gender === null || c.gender === ""
+  );
+
+  // ✅ Filter candidates based on gender
+  const filteredCandidates = candidates.filter((c) => c.gender === gender);
+
   return (
-    <main className="min-h-screen bg-gradient-to-br from-purple-600 to-blue-600">
-      <div className="mx-auto max-w-7xl px-4 py-12">
-        <div className="text-center text-white">
-          <h1 className="text-4xl font-bold">🎉 Mr. & Miss Intrams 2026</h1>
-          <p className="mt-2 text-lg text-purple-100">Online Tabulation System</p>
+    <main className="min-h-screen bg-gray-100">
+      <div className="mx-auto max-w-6xl px-4 py-8">
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">👩‍⚖️ Judge Portal</h1>
+            <p className="text-gray-600">Submit scores for Mr. & Miss Intrams 2026</p>
+          </div>
+          <div className="flex gap-4">
+            <Link href="/intrams" className="text-blue-600 hover:text-blue-800">
+              ← Back to Intrams
+            </Link>
+            <button
+              onClick={handleLogout}
+              className="bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-red-700"
+            >
+              Logout
+            </button>
+          </div>
         </div>
 
-        <div className="mt-12 grid gap-8 md:grid-cols-4">
-          {/* Admin Panel */}
-          <div className="rounded-xl bg-white p-6 shadow-lg">
-            <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-purple-100 text-purple-600">
-              🛠️
-            </div>
-            <h3 className="mt-4 text-lg font-semibold text-gray-900">Admin Panel</h3>
-            <p className="mt-2 text-sm text-gray-600">
-              Manage candidates, criteria, and view all scores.
-            </p>
-            <Link href="/intrams/admin/dashboard" className="mt-4 inline-block rounded-lg bg-purple-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-purple-700">
-              Go to Admin
-            </Link>
+        {/* Submit Success Message */}
+        {submitSuccess && (
+          <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg mb-6">
+            ✅ Score submitted successfully!
           </div>
+        )}
 
-          {/* Judge Login */}
-          <div className="rounded-xl bg-white p-6 shadow-lg">
-            <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-blue-100 text-blue-600">
-              👩‍⚖️
+        {/* Segment and Gender Selectors */}
+        <div className="bg-white rounded-lg shadow-md p-4 mb-6">
+          <div className="flex gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Gender</label>
+              <select
+                value={gender}
+                onChange={(e) => setGender(e.target.value)}
+                className="mt-1 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                <option value="female">Female</option>
+                <option value="male">Male</option>
+              </select>
             </div>
-            <h3 className="mt-4 text-lg font-semibold text-gray-900">Judge Login</h3>
-            <p className="mt-2 text-sm text-gray-600">
-              Login to submit scores.
-            </p>
-            <Link href="/intrams/judge/login" className="mt-4 inline-block rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-700">
-              Judge Login
-            </Link>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Segment</label>
+              <select
+                value={segment}
+                onChange={(e) => setSegment(e.target.value)}
+                className="mt-1 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                <option value="Sport Attire">Sport Attire</option>
+                <option value="Production Number">Production Number</option>
+                <option value="Ramp Modelling">Ramp Modelling</option>
+                <option value="Q&A">Q&A</option>
+              </select>
+            </div>
           </div>
+        </div>
 
-          {/* Judge Register */}
-          <div className="rounded-xl bg-white p-6 shadow-lg">
-            <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-green-100 text-green-600">
-              📝
-            </div>
-            <h3 className="mt-4 text-lg font-semibold text-gray-900">Judge Registration</h3>
-            <p className="mt-2 text-sm text-gray-600">
-              Create your judge account to start scoring.
-            </p>
-            <Link href="/intrams/judge/register" className="mt-4 inline-block rounded-lg bg-green-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-green-700">
-              Register as Judge
-            </Link>
-          </div>
+        {/* Ballot Form */}
+        <div className="bg-white rounded-lg shadow-md p-6">
+          <h2 className="text-xl font-semibold mb-6">📝 Score Sheet</h2>
 
-          {/* Live Display */}
-          <div className="rounded-xl bg-white p-6 shadow-lg">
-            <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-green-100 text-green-600">
-              📺
-            </div>
-            <h3 className="mt-4 text-lg font-semibold text-gray-900">Live Display</h3>
-            <p className="mt-2 text-sm text-gray-600">
-              Real-time leaderboard for the audience and hosts.
-            </p>
-            <Link href="/intrams/display" className="mt-4 inline-block rounded-lg bg-green-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-green-700">
-              Go to Live Display
-            </Link>
+          <div className="overflow-x-auto">
+            <table className="min-w-full">
+              <thead>
+                <tr className="bg-blue-600 text-white">
+                  <th className="px-4 py-2 text-left">Candidate</th>
+                  {filteredCriteria.map((criterion) => (
+                    <th key={criterion.id} className="px-4 py-2 text-center">
+                      {criterion.name}
+                      <br />
+                      <span className="text-xs">({criterion.percentage * 100}%)</span>
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {filteredCandidates.map((candidate) => (
+                  <tr key={candidate.id} className="border-b">
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-3">
+                        <span className="font-bold">#{candidate.number}</span>
+                        <div>
+                          <p className="font-semibold">{candidate.name}</p>
+                          <p className="text-xs text-gray-600">{candidate.section}</p>
+                        </div>
+                      </div>
+                    </td>
+                    {filteredCriteria.map((criterion) => (
+                      <td key={criterion.id} className="px-4 py-3 text-center">
+                        <input
+                          type="number"
+                          min="0"
+                          max={criterion.max_score}
+                          defaultValue={
+                            scores.find(
+                              (s) =>
+                                s.candidate_id === candidate.id &&
+                                s.criteria_id === criterion.id &&
+                                s.judge_id === user?.id
+                            )?.score || ""
+                          }
+                          onChange={(e) => {
+                            const value = parseFloat(e.target.value);
+                            if (value >= 0 && value <= criterion.max_score) {
+                              submitScore(candidate.id, criterion.id, value);
+                            }
+                          }}
+                          className="w-20 px-2 py-1 border rounded text-center"
+                        />
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
       </div>
