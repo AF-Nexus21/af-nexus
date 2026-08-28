@@ -1,471 +1,318 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
-import { supabase } from "@/lib/supabase";
-import Papa from "papaparse";
+import { supabase, isSupabaseAvailable } from "@/lib/supabase";
 
-export default function TeacherBulkUploadPage() {
+interface Student {
+  first_name: string;
+  last_name: string;
+  grade_level: string;
+  section: string;
+  learner_reference_number?: string;
+}
+
+export default function BulkUploadPage() {
   const router = useRouter();
-  const [csvFile, setCsvFile] = useState<File | null>(null);
-  const [photoFolder, setPhotoFolder] = useState<File[]>([]);
+  const [students, setStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
-  const [error, setError] = useState("");
-  const [isTeacher, setIsTeacher] = useState(false);
-  const [preview, setPreview] = useState<any[]>([]);
-  const [uploadProgress, setUploadProgress] = useState(0);
-  const [currentTeacher, setCurrentTeacher] = useState<any>(null);
+  const [messageType, setMessageType] = useState<"success" | "error" | "">("");
+  const [teacherId, setTeacherId] = useState<string | null>(null);
+  const [isClient, setIsClient] = useState(false);
 
-  // ✅ CHECK IF TEACHER
   useEffect(() => {
-    async function checkRole() {
+    setIsClient(true);
+    getTeacherId();
+  }, []);
+
+  // ✅ Check Supabase availability
+  if (!isClient) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="animate-pulse text-gray-500">Loading...</div>
+      </div>
+    );
+  }
+
+  if (!isSupabaseAvailable || !supabase) {
+    return (
+      <div className="flex min-h-screen items-center justify-center px-4">
+        <div className="max-w-md rounded-xl bg-white p-8 text-center shadow-lg">
+          <h2 className="text-xl font-bold text-red-600">⚠️ Service Unavailable</h2>
+          <p className="mt-2 text-sm text-gray-600">
+            Supabase is not configured. Please contact support.
+          </p>
+          <button
+            onClick={() => router.push("/teacher/preview")}
+            className="mt-4 rounded-lg bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700"
+          >
+            Back to Preview
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  async function getTeacherId() {
+    try {
+      if (!supabase) return;
+
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         router.push("/login");
         return;
       }
 
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("role")
-        .eq("id", user.id)
-        .maybeSingle();
-
-      if (!profile || profile.role !== "teacher") {
-        router.push("/");
-        return;
-      }
-
-      setIsTeacher(true);
-
-      // ✅ Get teacher info
-      const { data: teacher } = await supabase
-        .from("teachers")
-        .select("*")
-        .eq("profile_id", user.id)
-        .maybeSingle();
-
-      if (teacher) {
-        setCurrentTeacher(teacher);
-      }
-    }
-    checkRole();
-  }, [router]);
-
-  // ✅ DOWNLOAD CSV TEMPLATE
-  function downloadTemplate() {
-    const csvContent = [
-      "first_name,middle_name,last_name,student_number,school,school_address,course,birth_date,address,contact,parent_guardian,adviser,school_head,photo_filename,email,password",
-      "Juan,Dela,Cruz,123456789012,TAGPU NATIONAL HIGH SCHOOL,Tagpu Mandaon Masbate,Grade 7 - Sampaguita,2008-05-15,Tagpu Mandaon Masbate,09123456789,MR. & MRS. JUAN DELA CRUZ,MARILOR F. CARMEN,ANDREW R. ABSALON,123456789012.jpg,juan.delacruz@example.com,password123",
-      "Maria,Santos,Lopez,123456789013,TAGPU NATIONAL HIGH SCHOOL,Tagpu Mandaon Masbate,Grade 7 - Sampaguita,2007-08-20,Tagpu Mandaon Masbate,09123456790,MR. & MRS. PEDRO SANTOS,MARILOR F. CARMEN,ANDREW R. ABSALON,123456789013.jpg,maria.santos@example.com,password123"
-    ].join("\n");
-
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = "nexuspass_students_template.csv";
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  }
-
-  // ✅ HANDLE CSV FILE UPLOAD
-  function handleCsvChange(e: React.ChangeEvent<HTMLInputElement>) {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
-      setCsvFile(file);
-      parseCSV(file);
-    }
-  }
-
-  // ✅ HANDLE PHOTO FOLDER UPLOAD
-  function handlePhotoFolderChange(e: React.ChangeEvent<HTMLInputElement>) {
-    if (e.target.files) {
-      const files = Array.from(e.target.files);
-      setPhotoFolder(files);
-      setMessage(`✅ ${files.length} pictures selected.`);
-    }
-  }
-
-  // ✅ PARSE CSV FILE
-  function parseCSV(file: File) {
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const text = e.target?.result as string;
-      const result = Papa.parse(text, { header: true });
-      const students = result.data as any[];
-      
-      // I-filter ang mga empty rows
-      const validStudents = students.filter((s) => s.first_name && s.last_name && s.email && s.password);
-      
-      setPreview(validStudents);
-      setMessage(`✅ Found ${validStudents.length} students in CSV file.`);
-    };
-    reader.readAsText(file);
-  }
-
-  // ✅ UPLOAD PHOTO TO SUPABASE STORAGE
-  async function uploadPhoto(file: File, studentNumber: string): Promise<string | null> {
-    try {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${studentNumber}_${Date.now()}.${fileExt}`;
-      const filePath = `student-photos/${fileName}`;
-      
-      const { error: uploadError } = await supabase.storage
-        .from('student-photos')
-        .upload(filePath, file, { cacheControl: '3600', upsert: false });
-      
-      if (uploadError) {
-        console.error('Upload error:', uploadError);
-        return null;
-      }
-      
-      const { data } = supabase.storage
-        .from('student-photos')
-        .getPublicUrl(filePath);
-      
-      return data.publicUrl;
+      setTeacherId(user.id);
     } catch (error) {
-      console.error('Upload failed:', error);
-      return null;
+      console.error("Error getting teacher ID:", error);
     }
   }
 
-  // ✅ PROCESS CSV + FOLDER
-  async function handleUpload() {
-    if (!csvFile) {
-      setError("Please select a CSV file first.");
+  function validateStudent(student: Student): string | null {
+    if (!student.first_name?.trim()) return "First name is required";
+    if (!student.last_name?.trim()) return "Last name is required";
+    if (!student.grade_level?.trim()) return "Grade level is required";
+    if (!student.section?.trim()) return "Section is required";
+    return null;
+  }
+
+  async function handleBulkUpload() {
+    if (!supabase) {
+      setMessage("Supabase is not configured. Please try again later.");
+      setMessageType("error");
       return;
     }
 
-    if (photoFolder.length === 0) {
-      setError("Please upload the photo folder.");
+    if (students.length === 0) {
+      setMessage("Please add at least one student.");
+      setMessageType("error");
       return;
     }
 
     setLoading(true);
     setMessage("");
-    setError("");
-    setUploadProgress(0);
+    setMessageType("");
 
     try {
-      // 1. PARSE CSV FILE
-      const text = await csvFile.text();
-      const result = Papa.parse(text, { header: true });
-
-      const students = result.data as Array<{
-        first_name: string;
-        middle_name: string;
-        last_name: string;
-        student_number: string;
-        school: string;
-        school_address: string;
-        course: string;
-        birth_date: string;
-        address: string;
-        contact: string;
-        parent_guardian: string;
-        adviser: string;
-        school_head: string;
-        photo_filename: string;
-        email: string;
-        password: string;
-      }>;
-
-      // I-filter ang mga empty rows
-      const validStudents = students.filter((s) => s.first_name && s.last_name && s.email && s.password);
+      const validStudents = students.filter((s) => {
+        const error = validateStudent(s);
+        if (error) {
+          console.warn("Invalid student:", s, error);
+          return false;
+        }
+        return true;
+      });
 
       if (validStudents.length === 0) {
-        setError("No valid student data found in CSV.");
+        setMessage("No valid students to upload. Please check the data.");
+        setMessageType("error");
         setLoading(false);
         return;
       }
 
-      // 2. LOOP SA BAWAT STUDENT PARA MAG-REGISTER
-      let successCount = 0;
-      let errorCount = 0;
+      const { data, error } = await supabase
+        .from("students")
+        .insert(
+          validStudents.map((s) => ({
+            ...s,
+            teacher_id: teacherId,
+            created_at: new Date().toISOString(),
+          }))
+        )
+        .select();
 
-      for (let i = 0; i < validStudents.length; i++) {
-        const student = validStudents[i];
-        
-        try {
-          // ✅ FIND MATCHING PHOTO
-          const photoFilename = student.photo_filename || `${student.student_number}.jpg`;
-          const photoFile = photoFolder.find(f => f.name === photoFilename);
-          
-          let photoUrl = null;
-          if (photoFile) {
-            photoUrl = await uploadPhoto(photoFile, student.student_number);
-          }
-
-          // ✅ CREATE AUTH ACCOUNT
-          const { data: authData, error: authError } = await supabase.auth.signUp({
-            email: student.email,
-            password: student.password,
-          });
-
-          if (authError) {
-            console.error(`Error creating account for ${student.email}:`, authError);
-            errorCount++;
-            continue;
-          }
-
-          const user = authData.user;
-          if (!user) {
-            errorCount++;
-            continue;
-          }
-
-          // ✅ CREATE PROFILE
-          await supabase.from("profiles").insert({
-            id: user.id,
-            role: "student",
-          });
-
-          // ✅ CREATE STUDENT RECORD
-          const { error: insertError } = await supabase.from("students").insert({
-            profile_id: user.id,
-            first_name: student.first_name,
-            middle_name: student.middle_name,
-            last_name: student.last_name,
-            student_number: student.student_number,
-            school: student.school,
-            school_address: student.school_address,
-            course: student.course,
-            birth_date: student.birth_date,
-            address: student.address,
-            contact: student.contact,
-            parent_guardian: student.parent_guardian,
-            adviser: student.adviser || (currentTeacher ? `${currentTeacher.first_name} ${currentTeacher.last_name}` : ""),
-            school_head: student.school_head,
-            photo_url: photoUrl,
-            status: "active",
-          });
-
-          if (insertError) throw insertError;
-
-          successCount++;
-        } catch (err) {
-          console.error(`Error processing student ${student.student_number}:`, err);
-          errorCount++;
-        }
-
-        // ✅ UPDATE PROGRESS
-        setUploadProgress(Math.round(((i + 1) / validStudents.length) * 100));
+      if (error) {
+        console.error("Upload error:", error);
+        setMessage(`Upload failed: ${error.message}`);
+        setMessageType("error");
+      } else {
+        setMessage(`Successfully uploaded ${data?.length || 0} students!`);
+        setMessageType("success");
+        setStudents([]);
       }
-
-      setMessage(`✅ Successfully uploaded ${successCount} students. ${errorCount > 0 ? `⚠️ ${errorCount} students failed.` : ""}`);
-      
-      // ✅ RESET AFTER SUCCESSFUL UPLOAD
-      setCsvFile(null);
-      setPhotoFolder([]);
-      setPreview([]);
-      setUploadProgress(0);
-      
-    } catch (err) {
-      console.error("Bulk upload error:", err);
-      setError("Something went wrong during bulk upload.");
+    } catch (error) {
+      console.error("Error uploading students:", error);
+      setMessage("Something went wrong. Please try again.");
+      setMessageType("error");
     } finally {
       setLoading(false);
     }
   }
 
-  // ✅ DOWNLOAD SAMPLE PICTURES
-  function downloadSamplePhotos() {
-    // Sample pictures guide
-    const guide = [
-      "Sample Photo Folder Structure:",
-      "",
-      "student-photos/",
-      "├── 123456789012.jpg",
-      "├── 123456789013.jpg",
-      "└── 123456789014.jpg",
-      "",
-      "Rename each picture according to the student's LRN",
-      "Example: If LRN is 123456789012, name it 123456789012.jpg"
-    ].join("\n");
-
-    const blob = new Blob([guide], { type: "text/plain" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = "photo_folder_guide.txt";
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+  function addStudent() {
+    setStudents([
+      ...students,
+      {
+        first_name: "",
+        last_name: "",
+        grade_level: "",
+        section: "",
+        learner_reference_number: "",
+      },
+    ]);
   }
 
-  if (!isTeacher) {
-    return (
-      <main className="flex min-h-screen items-center justify-center">
-        <p className="text-gray-500">Checking role...</p>
-      </main>
-    );
+  function removeStudent(index: number) {
+    const newStudents = [...students];
+    newStudents.splice(index, 1);
+    setStudents(newStudents);
+  }
+
+  function updateStudent(index: number, field: keyof Student, value: string) {
+    const newStudents = [...students];
+    newStudents[index][field] = value;
+    setStudents(newStudents);
   }
 
   return (
-    <main className="min-h-screen bg-slate-100 px-4 py-10">
-      <div className="mx-auto max-w-4xl">
+    <div className="min-h-screen bg-gray-100 p-6">
+      <div className="mx-auto max-w-6xl">
         <div className="mb-6 flex items-center justify-between">
-          <Link href="/teacher/preview" className="inline-flex items-center gap-2 rounded-lg bg-gray-200 px-4 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-300">
-            <span>←</span> Back to Teacher Preview
-          </Link>
-          <h1 className="text-2xl font-bold text-blue-700">📥 Bulk Upload Students</h1>
-        </div>
-
-        {/* INSTRUCTIONS */}
-        <div className="mb-8 rounded-xl bg-blue-50 p-6">
-          <h2 className="text-lg font-bold text-blue-800">📋 Instructions:</h2>
-          <ol className="mt-3 list-decimal pl-5 text-sm text-blue-700">
-            <li>I-download ang <strong>CSV template</strong> at punan ang impormasyon ng students</li>
-            <li>I-download ang <strong>photo folder guide</strong> para malaman ang tamang pangalan ng pictures</li>
-            <li>I-rename ang pictures ayon sa <strong>LRN</strong> ng student</li>
-            <li>I-upload ang <strong>CSV file</strong></li>
-            <li>I-upload ang <strong>folder ng pictures</strong></li>
-            <li>I-click ang <strong>"Upload Students"</strong> button</li>
-          </ol>
-        </div>
-
-        <div className="rounded-2xl bg-white p-8 shadow-lg">
-          <h1 className="text-2xl font-bold text-gray-800">Bulk Upload Students with Photos</h1>
-          <p className="mt-2 text-sm text-gray-500">
-            Mag-upload ng CSV file at folder ng pictures para automatic silang ma-register.
-          </p>
-
-          {/* TEMPLATE DOWNLOAD */}
-          <div className="mt-6 rounded-xl bg-blue-50 p-4">
-            <h2 className="text-sm font-bold text-blue-800">Step 1: I-download ang Templates</h2>
-            <p className="mt-1 text-xs text-blue-600">
-              Punan ang CSV template at i-rename ang pictures ayon sa LRN.
-            </p>
-            <div className="mt-3 flex gap-3">
-              <button
-                onClick={downloadTemplate}
-                className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-700"
-              >
-                📥 Download CSV Template
-              </button>
-              <button
-                onClick={downloadSamplePhotos}
-                className="rounded-lg bg-green-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-green-700"
-              >
-                📷 Photo Folder Guide
-              </button>
-            </div>
-          </div>
-
-          {/* CSV FILE UPLOAD */}
-          <div className="mt-6">
-            <h2 className="text-sm font-bold text-gray-800">Step 2: I-upload ang CSV File</h2>
-            <input
-              type="file"
-              accept=".csv"
-              onChange={handleCsvChange}
-              className="mt-2 w-full rounded-lg border border-gray-300 p-3"
-            />
-          </div>
-
-          {/* PHOTO FOLDER UPLOAD */}
-          <div className="mt-6">
-            <h2 className="text-sm font-bold text-gray-800">Step 3: I-upload ang Photo Folder</h2>
-            <p className="mt-1 text-xs text-gray-500">
-              I-rename ang bawat picture ayon sa LRN (halimbawa: <code>123456789012.jpg</code>)
-            </p>
-            <input
-              type="file"
-              accept="image/*"
-              multiple
-              onChange={handlePhotoFolderChange}
-              className="mt-2 w-full rounded-lg border border-gray-300 p-3"
-            />
-            {photoFolder.length > 0 && (
-              <div className="mt-2 flex items-center gap-2 text-sm">
-                <span className="text-green-600">✅</span>
-                <span className="text-gray-700">{photoFolder.length} pictures selected</span>
-              </div>
-            )}
-          </div>
-
-          {/* PREVIEW TABLE */}
-          {preview.length > 0 && (
-            <div className="mt-6">
-              <h3 className="mb-3 text-sm font-bold text-gray-700">
-                📊 Preview ({preview.length} students found)
-              </h3>
-              <div className="max-h-60 overflow-y-auto rounded-lg border border-gray-200">
-                <table className="w-full text-left text-sm">
-                  <thead className="bg-gray-50 sticky top-0">
-                    <tr>
-                      <th className="px-4 py-2 font-semibold text-gray-600">LRN</th>
-                      <th className="px-4 py-2 font-semibold text-gray-600">Name</th>
-                      <th className="px-4 py-2 font-semibold text-gray-600">Grade/Strand</th>
-                      <th className="px-4 py-2 font-semibold text-gray-600">Photo</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-100">
-                    {preview.map((student, index) => (
-                      <tr key={index}>
-                        <td className="px-4 py-2 font-mono">{student.student_number}</td>
-                        <td className="px-4 py-2">
-                          {student.last_name}, {student.first_name}
-                        </td>
-                        <td className="px-4 py-2">{student.course}</td>
-                        <td className="px-4 py-2">
-                          {photoFolder.some(f => f.name === student.photo_filename) ? (
-                            <span className="text-green-600">✅</span>
-                          ) : (
-                            <span className="text-yellow-600">⚠️ Missing</span>
-                          )}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          )}
-
-          {/* UPLOAD PROGRESS */}
-          {loading && (
-            <div className="mt-6">
-              <div className="flex items-center justify-between text-sm">
-                <span className="font-semibold text-gray-700">Uploading...</span>
-                <span className="text-blue-600">{uploadProgress}%</span>
-              </div>
-              <div className="mt-2 h-4 w-full overflow-hidden rounded-full bg-gray-200">
-                <div
-                  className="h-full rounded-full bg-blue-600 transition-all duration-300"
-                  style={{ width: `${uploadProgress}%` }}
-                />
-              </div>
-            </div>
-          )}
-
-          {/* BUTTONS */}
+          <h1 className="text-2xl font-bold text-gray-800">Bulk Upload Students</h1>
           <button
-            onClick={handleUpload}
-            disabled={loading || preview.length === 0}
-            className="mt-6 w-full rounded-lg bg-green-600 px-6 py-3 text-sm font-semibold text-white transition hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-50"
+            onClick={() => router.push("/teacher/preview")}
+            className="rounded-lg bg-gray-600 px-4 py-2 text-sm text-white hover:bg-gray-700"
           >
-            {loading ? "Processing..." : "🚀 Upload Students"}
+            ← Back to Preview
           </button>
-
-          {/* MESSAGE */}
-          {message && (
-            <div className="mt-4 rounded-lg bg-green-100 p-4 text-sm text-green-700">
-              ✅ {message}
-            </div>
-          )}
-          {error && (
-            <div className="mt-4 rounded-lg bg-red-100 p-4 text-sm text-red-700">
-              ❌ {error}
-            </div>
-          )}
         </div>
+
+        <div className="mb-4 flex gap-4">
+          <button
+            onClick={addStudent}
+            className="rounded-lg bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700"
+          >
+            + Add Student
+          </button>
+          <button
+            onClick={handleBulkUpload}
+            disabled={loading || students.length === 0}
+            className="rounded-lg bg-green-600 px-4 py-2 text-sm text-white hover:bg-green-700 disabled:opacity-50"
+          >
+            {loading ? "Uploading..." : "Upload All Students"}
+          </button>
+        </div>
+
+        {message && (
+          <div
+            className={`mb-4 rounded-lg p-4 text-sm ${
+              messageType === "success"
+                ? "bg-green-50 text-green-700 border border-green-200"
+                : "bg-red-50 text-red-700 border border-red-200"
+            }`}
+          >
+            {message}
+          </div>
+        )}
+
+        {students.length === 0 ? (
+          <div className="rounded-lg bg-white p-8 text-center text-gray-500">
+            No students added yet. Click "Add Student" to start.
+          </div>
+        ) : (
+          <div className="overflow-x-auto rounded-lg bg-white shadow">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-4 py-3 text-left text-xs font-medium uppercase text-gray-500">
+                    First Name
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium uppercase text-gray-500">
+                    Last Name
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium uppercase text-gray-500">
+                    Grade Level
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium uppercase text-gray-500">
+                    Section
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium uppercase text-gray-500">
+                    LRN
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium uppercase text-gray-500">
+                    Action
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200">
+                {students.map((student, index) => (
+                  <tr key={index}>
+                    <td className="px-4 py-2">
+                      <input
+                        type="text"
+                        value={student.first_name}
+                        onChange={(e) =>
+                          updateStudent(index, "first_name", e.target.value)
+                        }
+                        className="w-full rounded border border-gray-300 px-2 py-1 text-sm"
+                        placeholder="First Name"
+                      />
+                    </td>
+                    <td className="px-4 py-2">
+                      <input
+                        type="text"
+                        value={student.last_name}
+                        onChange={(e) =>
+                          updateStudent(index, "last_name", e.target.value)
+                        }
+                        className="w-full rounded border border-gray-300 px-2 py-1 text-sm"
+                        placeholder="Last Name"
+                      />
+                    </td>
+                    <td className="px-4 py-2">
+                      <input
+                        type="text"
+                        value={student.grade_level}
+                        onChange={(e) =>
+                          updateStudent(index, "grade_level", e.target.value)
+                        }
+                        className="w-full rounded border border-gray-300 px-2 py-1 text-sm"
+                        placeholder="e.g., Grade 7"
+                      />
+                    </td>
+                    <td className="px-4 py-2">
+                      <input
+                        type="text"
+                        value={student.section}
+                        onChange={(e) =>
+                          updateStudent(index, "section", e.target.value)
+                        }
+                        className="w-full rounded border border-gray-300 px-2 py-1 text-sm"
+                        placeholder="e.g., A"
+                      />
+                    </td>
+                    <td className="px-4 py-2">
+                      <input
+                        type="text"
+                        value={student.learner_reference_number || ""}
+                        onChange={(e) =>
+                          updateStudent(
+                            index,
+                            "learner_reference_number",
+                            e.target.value
+                          )
+                        }
+                        className="w-full rounded border border-gray-300 px-2 py-1 text-sm"
+                        placeholder="LRN (optional)"
+                      />
+                    </td>
+                    <td className="px-4 py-2">
+                      <button
+                        onClick={() => removeStudent(index)}
+                        className="rounded bg-red-500 px-3 py-1 text-xs text-white hover:bg-red-600"
+                      >
+                        Remove
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
-    </main>
+    </div>
   );
 }
