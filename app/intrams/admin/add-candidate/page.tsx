@@ -73,6 +73,95 @@ export default function AddCandidatePage() {
     }
   };
 
+  // ✅ RESET FORM
+  async function handleReset() {
+    // Kumpirmahin muna
+    const confirmReset = await window.confirm(
+      "Are you sure you want to reset the form? This will clear all fields."
+    );
+    if (!confirmReset) return;
+
+    setNumber("");
+    setName("");
+    setGender("male");
+    setSection("");
+    setPhotoUrl("");
+    setMessage(null);
+    setMessageType("");
+  }
+
+  // ✅ DELETE CANDIDATE
+  async function handleDelete() {
+    // Kailangan mo ng candidate ID para ma-delete
+    if (!number.trim()) {
+      setMessage("Please enter a candidate number to delete.");
+      setMessageType("error");
+      return;
+    }
+
+    const confirmDelete = await window.confirm(
+      `Are you sure you want to delete candidate #${number}?`
+    );
+    if (!confirmDelete) return;
+
+    setLoading(true);
+    setMessage(null);
+    setMessageType("");
+
+    try {
+      // Hanapin yung candidate base sa number at gender
+      const { data, error: fetchError } = await supabase
+        .from("candidates")
+        .select("id")
+        .eq("number", parseInt(number))
+        .eq("gender", gender)
+        .maybeSingle();
+
+      if (fetchError) {
+        setMessage(fetchError.message);
+        setMessageType("error");
+        return;
+      }
+
+      if (!data) {
+        setMessage("Candidate not found. Please check the number and gender.");
+        setMessageType("error");
+        return;
+      }
+
+      // I-delete yung candidate
+      const { error } = await supabase
+        .from("candidates")
+        .delete()
+        .eq("id", data.id);
+
+      if (error) {
+        setMessage(error.message);
+        setMessageType("error");
+        return;
+      }
+
+      setMessage("Candidate deleted successfully!");
+      setMessageType("success");
+      setLoading(false);
+
+      // Reset form pagkatapos mag-delete
+      setNumber("");
+      setName("");
+      setGender("male");
+      setSection("");
+      setPhotoUrl("");
+
+      setTimeout(() => {
+        router.push("/intrams/admin/dashboard");
+      }, 1500);
+    } catch (error) {
+      setMessage("Something went wrong. Please try again.");
+      setMessageType("error");
+      setLoading(false);
+    }
+  }
+
   return (
     <main className="min-h-screen bg-gray-100">
       <div className="mx-auto max-w-2xl px-4 py-8">
@@ -162,10 +251,31 @@ export default function AddCandidatePage() {
               </div>
             )}
 
+            {/* ✅ RESET AT DELETE BUTTONS */}
+            <div className="mt-4 flex gap-4">
+              <button
+                type="button"
+                onClick={handleReset}
+                disabled={loading}
+                className="w-1/2 rounded-lg bg-gray-600 px-6 py-3 font-semibold text-white transition hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {loading ? "Loading..." : "Reset"}
+              </button>
+
+              <button
+                type="button"
+                onClick={handleDelete}
+                disabled={loading}
+                className="w-1/2 rounded-lg bg-red-600 px-6 py-3 font-semibold text-white transition hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {loading ? "Loading..." : "Delete"}
+              </button>
+            </div>
+
             <button
               type="submit"
               disabled={loading}
-              className="w-full rounded-lg bg-purple-600 px-6 py-3 font-semibold text-white transition hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="mt-4 w-full rounded-lg bg-purple-600 px-6 py-3 font-semibold text-white transition hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? "Loading..." : "Add Candidate"}
             </button>
